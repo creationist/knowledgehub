@@ -24,12 +24,10 @@ class Milvus extends VectorDatabase {
   // Milvus/Zilliz only allows letters, numbers, and underscores in collection names
   // so we need to enforce that by re-normalizing the names when communicating with
   // the DB.
-  // If the first char of the collection is not an underscore or letter the collection name will be invalid.
+  // If the first char of the collection is not an underscore or letter the collection name will be invalid,
+  // so every name gets the anythingllm_ prefix (a slug can start with a digit, eg: a uuid slug).
   normalize(inputString) {
-    let normalized = inputString.replace(/[^a-zA-Z0-9_]/g, "_");
-    if (new RegExp(/^[a-zA-Z_]/).test(normalized.slice(0, 1)))
-      normalized = `anythingllm_${normalized}`;
-    return normalized;
+    return `anythingllm_${inputString.replace(/[^a-zA-Z0-9_]/g, "_")}`;
   }
 
   async connect() {
@@ -59,21 +57,22 @@ class Milvus extends VectorDatabase {
   async totalVectors() {
     const { client } = await this.connect();
     const { collection_names } = await client.listCollections();
-    const total = collection_names.reduce(async (acc, collection_name) => {
-      const statistics = await client.getCollectionStatistics({
-        collection_name: this.normalize(collection_name),
-      });
-      return Number(acc) + Number(statistics?.data?.row_count ?? 0);
-    }, 0);
+    let total = 0;
+    for (const name of collection_names.filter((n) =>
+      n.startsWith("anythingllm_")
+    )) {
+      const { data: count } = await client.count({ collection_name: name });
+      total += Number(count ?? 0);
+    }
     return total;
   }
 
   async namespaceCount(_namespace = null) {
     const { client } = await this.connect();
-    const statistics = await client.getCollectionStatistics({
+    const { data: count } = await client.count({
       collection_name: this.normalize(_namespace),
     });
-    return Number(statistics?.data?.row_count ?? 0);
+    return Number(count ?? 0);
   }
 
   async namespace(client, namespace = null) {

@@ -40,6 +40,7 @@ const KEY_MAPPING = {
   AzureOpenAiEmbeddingModelPref: {
     envKey: "EMBEDDING_MODEL_PREF",
     checks: [isNotEmpty],
+    postUpdate: [handleVectorStoreReset],
   },
   AzureOpenAiModelType: {
     envKey: "AZURE_OPENAI_MODEL_TYPE",
@@ -112,7 +113,7 @@ const KEY_MAPPING = {
   },
   LocalAiTokenLimit: {
     envKey: "LOCAL_AI_MODEL_TOKEN_LIMIT",
-    checks: [nonZero],
+    checks: [],
   },
   LocalAiApiKey: {
     envKey: "LOCAL_AI_API_KEY",
@@ -161,11 +162,11 @@ const KEY_MAPPING = {
   },
   KoboldCPPTokenLimit: {
     envKey: "KOBOLD_CPP_MODEL_TOKEN_LIMIT",
-    checks: [nonZero],
+    checks: [],
   },
   KoboldCPPMaxTokens: {
     envKey: "KOBOLD_CPP_MAX_TOKENS",
-    checks: [nonZero],
+    checks: [],
   },
 
   // Text Generation Web UI Settings
@@ -219,7 +220,7 @@ const KEY_MAPPING = {
   },
   GenericOpenAiMaxTokens: {
     envKey: "GENERIC_OPEN_AI_MAX_TOKENS",
-    checks: [nonZero],
+    checks: [nonNegative],
   },
 
   // AWS Bedrock LLM Settings
@@ -238,6 +239,10 @@ const KEY_MAPPING = {
   AwsBedrockLLMTokenLimit: {
     envKey: "AWS_BEDROCK_LLM_MODEL_TOKEN_LIMIT",
     checks: [nonZero],
+  },
+  AwsBedrockLLMMaxTokens: {
+    envKey: "AWS_BEDROCK_LLM_MAX_TOKENS",
+    checks: [],
   },
 
   EmbeddingEngine: {
@@ -289,6 +294,64 @@ const KEY_MAPPING = {
   GenericOpenAiEmbeddingQueryPrefix: {
     envKey: "GENERIC_OPEN_AI_EMBEDDING_QUERY_PREFIX",
     checks: [],
+  },
+
+  // Image Generation Settings
+  ImageGenerationProvider: {
+    envKey: "IMAGE_GEN_PROVIDER",
+    checks: [isNotEmpty, supportedImageGenerationProvider],
+  },
+  ImageGenerationModelPref: {
+    envKey: "IMAGE_GEN_MODEL_PREF",
+    checks: [],
+  },
+  ImageGenerationDimensions: {
+    envKey: "IMAGE_GEN_SIZE_PREF",
+    checks: [],
+  },
+  ImageGenerationOpenAiKey: {
+    envKey: "IMAGE_GEN_OPENAI_KEY",
+    checks: [isNotEmpty, validOpenAIKey],
+  },
+  ImageGenerationOpenRouterApiKey: {
+    envKey: "IMAGE_GEN_OPENROUTER_API_KEY",
+    checks: [isNotEmpty],
+  },
+  ImageGenerationOllamaBasePath: {
+    envKey: "IMAGE_GEN_OLLAMA_BASE_PATH",
+    checks: [isNotEmpty, validOllamaLLMBasePath, validDockerizedUrl],
+  },
+  ImageGenerationOllamaAuthToken: {
+    envKey: "IMAGE_GEN_OLLAMA_AUTH_TOKEN",
+    checks: [],
+  },
+  ImageGenerationLemonadeBasePath: {
+    envKey: "IMAGE_GEN_LEMONADE_BASE_PATH",
+    checks: [isValidURL],
+  },
+  ImageGenerationLemonadeApiKey: {
+    envKey: "IMAGE_GEN_LEMONADE_API_KEY",
+    checks: [],
+  },
+  ImageGenerationLocalAiBasePath: {
+    envKey: "IMAGE_GEN_LOCALAI_BASE_PATH",
+    checks: [isNotEmpty, validLLMExternalBasePath, validDockerizedUrl],
+  },
+  ImageGenerationLocalAiApiKey: {
+    envKey: "IMAGE_GEN_LOCALAI_API_KEY",
+    checks: [],
+  },
+  ImageGenerationLlmmanBasePath: {
+    envKey: "IMAGE_GEN_LLMMAN_BASE_PATH",
+    checks: [isNotEmpty, isValidURL, validDockerizedUrl],
+  },
+  ImageGenerationLlmmanAuthToken: {
+    envKey: "IMAGE_GEN_LLMMAN_AUTH_TOKEN",
+    checks: [],
+  },
+  ImageGenerationGeminiApiKey: {
+    envKey: "IMAGE_GEN_GEMINI_API_KEY",
+    checks: [isNotEmpty],
   },
 
   // Vector Database Selection Settings
@@ -414,6 +477,10 @@ const KEY_MAPPING = {
     envKey: "TOGETHER_AI_MODEL_PREF",
     checks: [isNotEmpty],
   },
+  TogetherAiMaxTokens: {
+    envKey: "TOGETHER_AI_MAX_TOKENS",
+    checks: [nonNegative],
+  },
 
   // Fireworks AI Options
   FireworksAiLLMApiKey: {
@@ -447,6 +514,17 @@ const KEY_MAPPING = {
   OpenRouterTimeout: {
     envKey: "OPENROUTER_TIMEOUT_MS",
     checks: [],
+  },
+  OpenRouterServiceTier: {
+    envKey: "OPENROUTER_SERVICE_TIER",
+    checks: [
+      (input) => {
+        const { OpenRouterLLM } = require("../AiProviders/openRouter");
+        return OpenRouterLLM.SERVICE_TIERS.includes(input)
+          ? null
+          : `Invalid service tier. Must be one of: ${OpenRouterLLM.SERVICE_TIERS.join(", ")}.`;
+      },
+    ],
   },
 
   // Novita Options
@@ -594,6 +672,26 @@ const KEY_MAPPING = {
   },
   AgentCrwApiUrl: {
     envKey: "AGENT_CRW_API_URL",
+    checks: [],
+  },
+  AgentYouApiKey: {
+    envKey: "AGENT_YOU_API_KEY",
+    checks: [],
+  },
+  AgentKeenableApiKey: {
+    envKey: "AGENT_KEENABLE_API_KEY",
+    checks: [],
+  },
+  AgentKeenableApiUrl: {
+    envKey: "AGENT_KEENABLE_API_URL",
+    checks: [],
+  },
+  AgentAnySearchApiKey: {
+    envKey: "AGENT_ANYSEARCH_API_KEY",
+    checks: [],
+  },
+  AgentFirecrawlApiKey: {
+    envKey: "AGENT_FIRECRAWL_API_KEY",
     checks: [],
   },
 
@@ -747,6 +845,28 @@ const KEY_MAPPING = {
     checks: [isNotEmpty],
   },
 
+  // Google Vertex AI Options
+  VertexAiLLMApiKey: {
+    envKey: "VERTEX_AI_LLM_API_KEY",
+    checks: [isNotEmpty],
+  },
+  VertexAiLLMProjectId: {
+    envKey: "VERTEX_AI_LLM_PROJECT_ID",
+    checks: [isNotEmpty],
+  },
+  VertexAiLLMRegion: {
+    envKey: "VERTEX_AI_LLM_REGION",
+    checks: [isNotEmpty],
+  },
+  VertexAiLLMModelPref: {
+    envKey: "VERTEX_AI_LLM_MODEL_PREF",
+    checks: [isNotEmpty],
+  },
+  VertexAiLLMTokenLimit: {
+    envKey: "VERTEX_AI_LLM_MODEL_TOKEN_LIMIT",
+    checks: [],
+  },
+
   // APIPie Options
   ApipieLLMApiKey: {
     envKey: "APIPIE_LLM_API_KEY",
@@ -870,18 +990,26 @@ const KEY_MAPPING = {
     checks: [nonZero],
   },
 
-  // Docker Model Runner Options
-  DockerModelRunnerBasePath: {
-    envKey: "DOCKER_MODEL_RUNNER_BASE_PATH",
-    checks: [isValidURL],
+  // llmman Options
+  LlmmanBasePath: {
+    envKey: "LLMMAN_BASE_PATH",
+    checks: [isNotEmpty, isValidURL, validDockerizedUrl],
   },
-  DockerModelRunnerModelPref: {
-    envKey: "DOCKER_MODEL_RUNNER_LLM_MODEL_PREF",
-    checks: [isNotEmpty],
+  LlmmanModelPref: {
+    envKey: "LLMMAN_MODEL_PREF",
+    checks: [],
   },
-  DockerModelRunnerModelTokenLimit: {
-    envKey: "DOCKER_MODEL_RUNNER_LLM_MODEL_TOKEN_LIMIT",
-    checks: [nonZero],
+  LlmmanTokenLimit: {
+    envKey: "LLMMAN_MODEL_TOKEN_LIMIT",
+    checks: [],
+  },
+  LlmmanKeepAliveSeconds: {
+    envKey: "LLMMAN_KEEP_ALIVE_TIMEOUT",
+    checks: [isInteger],
+  },
+  LlmmanAuthToken: {
+    envKey: "LLMMAN_AUTH_TOKEN",
+    checks: [],
   },
 
   // Privatemode Options
@@ -962,6 +1090,12 @@ function isNotEmpty(input = "") {
 function nonZero(input = "") {
   if (isNaN(Number(input))) return "Value must be a number";
   return Number(input) <= 0 ? "Value must be greater than zero" : null;
+}
+
+// Zero is allowed and means the field is omitted from the request payload.
+function nonNegative(input = "") {
+  if (isNaN(Number(input))) return "Value must be a number";
+  return Number(input) < 0 ? "Value cannot be negative" : null;
 }
 
 function isInteger(input = "") {
@@ -1077,7 +1211,7 @@ function supportedLLM(input = "") {
     "foundry",
     "zai",
     "giteeai",
-    "docker-model-runner",
+    "llmman",
     "privatemode",
     "sambanova",
     "lemonade",
@@ -1085,6 +1219,7 @@ function supportedLLM(input = "") {
     "cerebras",
     "omlx",
     "anythingllm-router",
+    "vertex",
   ].includes(input);
   return validSelection ? null : `${input} is not a valid LLM provider.`;
 }
@@ -1148,6 +1283,21 @@ function supportedVectorDB(input = "") {
     : `Invalid VectorDB type. Must be one of ${supported.join(", ")}.`;
 }
 
+function supportedImageGenerationProvider(input = "") {
+  const supported = [
+    "openai",
+    "ollama",
+    "lemonade",
+    "openrouter",
+    "localai",
+    "llmman",
+    "gemini",
+  ];
+  return supported.includes(input)
+    ? null
+    : `Invalid image generation provider. Must be one of ${supported.join(", ")}.`;
+}
+
 function validChromaURL(input = "") {
   return input.slice(-1) === "/"
     ? `Chroma Instance URL should not end in a trailing slash.`
@@ -1205,7 +1355,13 @@ async function handleVectorStoreReset(key, prevValue, nextValue) {
     return await resetAllVectorStores({ vectorDbKey: prevValue });
   }
 
-  if (key === "EmbeddingEngine" || key === "EmbeddingModelPref") {
+  if (
+    [
+      "EmbeddingEngine",
+      "EmbeddingModelPref",
+      "AzureOpenAiEmbeddingModelPref",
+    ].includes(key)
+  ) {
     console.log(
       `${key} changed from ${prevValue} to ${nextValue} - resetting ${process.env.VECTOR_DB} namespaces`
     );
@@ -1303,7 +1459,7 @@ async function updateENV(newENVs = {}, force = false, userId = null) {
   const runAfterAll = [];
   const validKeys = Object.keys(KEY_MAPPING);
   const ENV_KEYS = Object.keys(newENVs).filter(
-    (key) => validKeys.includes(key) && !newENVs[key].includes("******") // strip out answers where the value is all asterisks
+    (key) => validKeys.includes(key) && !/^\*+$/.test(newENVs[key]) // strip out answers where the value is all asterisks (masked placeholder)
   );
   const newValues = {};
 
@@ -1410,6 +1566,7 @@ function dumpENV() {
     // Other Configuration Keys
     "DISABLE_VIEW_CHAT_HISTORY",
     "DISABLE_SWAGGER_DOCS",
+    "WORKSPACE_DELETION_PROTECTION",
     // Simple SSO
     "SIMPLE_SSO_ENABLED",
     "SIMPLE_SSO_NO_LOGIN",
@@ -1430,6 +1587,8 @@ function dumpENV() {
     "GENERIC_OPENAI_STREAMING_DISABLED",
     // Custom headers for Generic OpenAI
     "GENERIC_OPEN_AI_CUSTOM_HEADERS",
+    // Custom request field name for Generic OpenAI max tokens (eg: max_completion_tokens)
+    "GENERIC_OPEN_AI_MODEL_MAX_TOKEN_KEY",
 
     // Specify Chromium args for collector
     "ANYTHINGLLM_CHROMIUM_ARGS",
@@ -1459,6 +1618,30 @@ function dumpENV() {
 
     // Deny-by-default for embed widgets that have no allowlist configured
     "EMBED_REQUIRE_ALLOWLIST",
+
+    // Allow setting a custom timeout for tool call approval prompts
+    "TOOL_CALL_APPROVAL_TIMEOUT_MS",
+
+    // AWS Bedrock endpoint host overrides for air-gapped or specialized partitions
+    "AWS_BEDROCK_LLM_MANTLE_ENDPOINT",
+    "AWS_BEDROCK_LLM_RUNTIME_ENDPOINT",
+    "AWS_BEDROCK_LLM_CONTROL_ENDPOINT",
+
+    // Allow setting a delay between Generic OpenAI embedding requests
+    "GENERIC_OPEN_AI_EMBEDDING_API_DELAY_MS",
+
+    // Memory extraction, scheduled job and document sync worker settings
+    "MEMORY_EXTRACTION_INTERVAL",
+    "MEMORY_IDLE_THRESHOLD_MS",
+    "SCHEDULED_JOB_MAX_CONCURRENT",
+    "SCHEDULED_JOB_TIMEOUT_MS",
+    "DOCUMENT_SYNC_STALE_AFTER_MS",
+
+    // Legacy provider overrides that are still read when set
+    "CEREBRAS_MODEL_TOKEN_LIMIT",
+    "DEEPSEEK_MAX_TOKENS",
+    "LLMMAN_RESPONSE_TIMEOUT",
+    "VERTEX_AI_LLM_MAX_TOKENS",
   ];
 
   // Simple sanitization of each value to prevent ENV injection via newline or quote escaping.

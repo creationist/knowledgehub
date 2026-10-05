@@ -51,6 +51,7 @@ const TRANSLATIONS = {
     "workspaces-name": "שם סביבת העבודה",
     selection: "בחירת מודל",
     saving: "שומר...",
+    saved: "נשמר",
     save: "שמור שינויים",
     previous: "עמוד קודם",
     next: "עמוד הבא",
@@ -65,6 +66,7 @@ const TRANSLATIONS = {
     stopped: "עצר",
     loading: "טעינה",
     refresh: "רענן",
+    noResults: "לא נמצאו תוצאות",
   },
   settings: {
     title: "הגדרות מופע",
@@ -108,6 +110,7 @@ const TRANSLATIONS = {
     },
     "scheduled-jobs": "משימות מתוכננות",
     "model-router": "מודל של נתב",
+    "image-generation": "יצירת תמונות",
   },
   login: {
     "multi-user": {
@@ -134,6 +137,35 @@ const TRANSLATIONS = {
       uploadDocument: "העלה מסמך",
     },
     greeting: "במה אוכל לעזור לך היום?",
+    greetings: {
+      anytime: {
+        working_on: "על מה אנחנו עובדים?",
+        on_your_mind: "מה עובר לך בראש?",
+        where_to_start: "מאיפה נתחיל?",
+        ready: "מוכן כשאתה מוכן.",
+        think_it_through: "בוא נחשוב על זה לעומק.",
+      },
+      morning: {
+        good_morning: "בוקר טוב",
+        first_today: "בוקר טוב. מה הדבר הראשון היום?",
+        fresh_start: "התחלה חדשה. מאיפה מתחילים?",
+      },
+      afternoon: {
+        good_afternoon: "צהריים טובים",
+        tackling: "צהריים טובים. במה נטפל?",
+        next_on_list: "מה הבא ברשימה?",
+        keep_moving: "בוא נמשיך להתקדם.",
+      },
+      evening: {
+        good_evening: "ערב טוב",
+        finish_strong: "ערב טוב. בוא נסיים חזק.",
+      },
+      night: {
+        midnight_oil: "עובדים עד מאוחר?",
+        late_one: "לילה ארוך? בוא נחשוב על זה לעומק.",
+        still_up: "עדיין ער? מוכן כשאתה מוכן.",
+      },
+    },
   },
   "new-workspace": {
     title: "סביבת עבודה חדשה",
@@ -239,6 +271,22 @@ const TRANSLATIONS = {
       title: "טמפרטורת LLM",
       "desc-end":
         "ככל שהמספר גבוה יותר, כך התגובה יצירתית יותר. עבור מודלים מסוימים, הדבר עלול להוביל לתגובות לא קוהרנטיות כאשר הערך גבוה מדי.",
+      placeholder: "ברירת המחדל של הספק",
+    },
+    reasoning_effort: {
+      title: "מאמץ חשיבה",
+      default: "ברירת המחדל של הספק",
+      cannot_disable: "מודל זה אינו יכול לכבות את החשיבה.",
+      levels: {
+        off: "כבוי",
+        on: "פעיל",
+        minimal: "מינימלי",
+        low: "נמוך",
+        medium: "בינוני",
+        high: "גבוה",
+        xhigh: "גבוה מאוד",
+        max: "מקסימלי",
+      },
     },
   },
   "vector-workspace": {
@@ -316,8 +364,6 @@ const TRANSLATIONS = {
         description:
           "אפשרו לסוכן שלכם לנצל את SQL כדי לענות על שאלותיכם, על ידי חיבור למספר ספקי מסדי נתונים של SQL.",
       },
-      default_skill:
-        "כברירת מחדל, הכישורים הזה מופעל, אך ניתן להשבית אותו אם אינכם רוצים שהוא יהיה זמין עבור הסוכן.",
       filesystem: {
         title: "גישה למערכת הקבצים",
         description:
@@ -697,6 +743,11 @@ const TRANSLATIONS = {
         description:
           'אפשר לסוכן ליצור משימות קבועות לפי לוח זמנים, המתבססות על שיחות (לדוגמה: "כל יום במהלך השבוע בשעה 9 בבוקר, סכם עבורי את תיבת הדואר שלי ושלוח לי מיילים"). אפשר להשתמש בתכונה זו רק במצב של משתמש אחד.',
       },
+      generateImage: {
+        title: "יצירת תמונות",
+        description:
+          "אפשר לסוכן ליצור תמונות מתוך השיחה, או לערוך תמונות המצורפות לשיחה, תוך שימוש בספק יצירת התמונות שהגדרת.",
+      },
     },
     mcp: {
       title: "שרתי MCP",
@@ -842,6 +893,11 @@ const TRANSLATIONS = {
         title: "הצגת קוד HTML בשיחת צ'אט",
         description:
           "הצגת תגובות HTML בתגובות של עוזר.\nזה יכול להוביל לאיכות תגובה גבוהה בהרבה, אך גם עלול לגרום לסיכונים פוטנציאליים של אבטחה.",
+      },
+      "disable-auto-scroll": {
+        title: "השבת גלילה אוטומטית",
+        description:
+          "כבה את הקיפול האוטומטי לסוף החלון כאשר מתקבלות הודעות חדשות.",
       },
     },
   },
@@ -1137,6 +1193,8 @@ const TRANSLATIONS = {
       save_embed: "שמור והטמע",
       "total-documents_one": "{{count}} מסמך",
       "total-documents_other": "מסמכים {{count}}",
+      "search-results_one": "{{count}} תוצאה",
+      "search-results_other": "תוצאות {{count}}",
     },
     upload: {
       "processor-offline": "מעבד המסמכים אינו זמין",
@@ -1172,6 +1230,32 @@ const TRANSLATIONS = {
       watch_explained_block3_link: "מנהל הקבצים",
       watch_explained_block3_end: " של המנהל.",
       accept: "אוקיי, הבנתי",
+    },
+    gitea: {
+      name: "מאגר ג'יטה",
+      description:
+        "ייבוא שלמא מלא, בין אם הוא ציבורי או פרטי, מכל סביבת Gitea, באמצעות לחיצה אחת בלבד.",
+      URL: "כתובת URL של מאגר ג'יטה",
+      URL_explained:
+        "כתובת ה-URL של המאגר שברצונכם לאסוף בשרת ה-Gitea שלכם – נתמכות גם גרסאות מאוחזות באופן עצמי.",
+      token: "טוקן גיטה",
+      optional: "אופציונלי",
+      token_explained:
+        "סיסמה נדרשת כדי לגשת למאגרים פרטיים או למאגרים במערכות הדורשות אימות.",
+      token_explained_start: "ללא",
+      token_explained_link1: "מפתח גישה",
+      token_explained_end:
+        "ניתן לאסוף רק מאגרים שהאינסטנס של Gitea שלך חושף לציבור.",
+      ignores: "הקובץ מתעלם",
+      git_ignore:
+        "רשימה בפורמט של `.gitignore` כדי להתעלם ממסוימים מהקבצים במהלך איסוף. לחץ על Enter אחרי כל פריט שברצונך לשמור.",
+      task_explained:
+        "לאחר השלמת העיבוד, כל הקבצים יהיו זמינים לשילוב בסביבות עבודה דרך בחירת המסמכים.",
+      branch: "הענף ממנו ברצונך לאסוף קבצים.",
+      branch_loading: "– טעינת הסניפים הזמינים –",
+      branch_explained: "הענף ממנו ברצונך לאסוף קבצים.",
+      token_information:
+        "ללא מילוי של <b>מזהה גישה ל-Gitea</b>, חיבור הנתונים הזה יהיה מסוגל לאסוף קבצים רק ממאגרי קוד שניתן לגשת אליהם באופן <b>ציבורי</b> בתוך המופע של Gitea שלך.",
     },
   },
   chat_window: {
@@ -1310,6 +1394,19 @@ const TRANSLATIONS = {
     stt_transcription_failed: "לא הצליח הטרנסקריפציה: {{error}}",
     export: "ייצוא צ'אט כ...",
     exporting: "ייצוא...",
+    preset_img_description: "יצירת תמונה על סמך הנחיה טקסטואלית",
+    generating_response: "יצירת תגובה",
+    response_failed: "לא ניתן להגיב למסר.",
+    response_failed_reason: "סיבה: {{reason}}",
+    thought_in_progress: "המערכת חושבת…",
+    thoughts: "מחשבות",
+    leave_generating: {
+      title: "האם הפסקת לייצר תגובה?",
+      description:
+        "אתם עומדים לצאת מהצ'אט הזה, וזה יגרום למודל להפסיק ליצור את התשובה, ואי אפשר יהיה לשחזר אותה.",
+      cancel: "ביטול",
+      confirm: "המשך",
+    },
   },
   profile_settings: {
     edit_account: "ערוך חשבון",
@@ -1850,6 +1947,22 @@ const TRANSLATIONS = {
       "routed-to": "מופנה ל-{{model}} בתוך <route>",
       "routed-to-rule":
         "נשלח דרך <route>{{model}}</route> באמצעות <rule>{{ruleTitle}}</rule>",
+    },
+  },
+  imageGeneration: {
+    title: "העדפה לגבי יצירת תמונות",
+    description: "הגדר את הספק המשמש ליצירת תמונות באמצעות הפקודה `/img`.",
+    provider: "ספק יצירת תמונות",
+    card: {
+      "failed-to-load": "לא ניתן היה לטעון תמונה.",
+      "alt-text": "תמונה שנוצרה באופן אוטומטי",
+      edit: "ערוך",
+      download: "הורדה",
+    },
+    pending: {
+      heading: "יצירת התמונה שלכם...",
+      description: "זה עשוי לקחת קצת זמן. הוא יופיע כאן ברגע שהוא מוכן.",
+      aborted: "יצירת התמונה בוטלה.",
     },
   },
 };

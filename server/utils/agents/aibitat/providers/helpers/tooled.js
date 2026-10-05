@@ -1,5 +1,9 @@
 const { v4 } = require("uuid");
 const { safeJsonParse } = require("../../../../http");
+const { attachmentToContentBlock } = require("../../../../helpers/attachments");
+const {
+  extractReasoningContent,
+} = require("../../../../helpers/chat/responses");
 
 /**
  * Shared native OpenAI-compatible tool calling utilities.
@@ -11,7 +15,7 @@ const { safeJsonParse } = require("../../../../http");
  *   const { tooledStream, tooledComplete } = require("./helpers/tooled.js");
  *
  *   async stream(messages, functions, eventHandler) {
- *     if (functions.length > 0 && await this.supportsNativeToolCalling()) {
+ *     if (await this.supportsNativeToolCalling()) {
  *       return tooledStream(this.client, this.model, messages, functions, eventHandler);
  *     }
  *     // ... fallback to UnTooled ...
@@ -49,12 +53,7 @@ function formatMessageWithAttachments(message) {
   // Transform message with attachments into multimodal format
   const content = [{ type: "text", text: message.content }];
   for (const attachment of message.attachments) {
-    content.push({
-      type: "image_url",
-      image_url: {
-        url: attachment.contentString,
-      },
-    });
+    content.push(attachmentToContentBlock(attachment));
   }
 
   // Return message without attachments property, with content as array
@@ -93,6 +92,15 @@ function formatMessagesForTools(messages, options = {}) {
               {
                 id: message.originalFunctionCall.id,
                 type: "function",
+                // Some providers require provider-specific tool call metadata
+                // to be echoed back on subsequent turns (eg: Gemini 3 models
+                // on Vertex 400 when `extra_content.google.thought_signature`
+                // is missing from replayed function calls).
+                ...(message.originalFunctionCall.extra_content
+                  ? {
+                      extra_content: message.originalFunctionCall.extra_content,
+                    }
+                  : {}),
                 function: {
                   name: message.originalFunctionCall.name,
                   arguments:
@@ -155,6 +163,51 @@ function formatMessagesForTools(messages, options = {}) {
 }
 
 /**
+ * Build the `max_tokens` request field from an explicit output budget passed
+ * in the tooled options. This is opt-in per provider: only providers that pass
+ * `maxTokens` in options get the field, every other provider keeps sending no
+ * `max_tokens` so the backend's own default applies unchanged.
+ * @param {unknown} maxTokens
+ * @param {string} [key] - field name to build, for clients that expect a different casing
+ * @returns {Object}
+ */
+function maxTokensParam(maxTokens, key = "max_tokens") {
+  if (
+    typeof maxTokens !== "number" ||
+    !Number.isFinite(maxTokens) ||
+    maxTokens <= 0
+  )
+    return {};
+  return { [key]: maxTokens };
+}
+
+/**
+ * Build the `service_tier` request field from the tooled options. Only providers
+ * that pass `serviceTier` get the field, every other provider keeps sending no
+ * `service_tier` at all.
+ * @param {string} serviceTier
+ * @param {((text: string) => void)|null} log - Optional provider logger.
+ * @returns {{service_tier?: string}}
+ */
+function serviceTierParam(serviceTier, log = null) {
+  if (typeof serviceTier !== "string" || !serviceTier.length) return {};
+  if (typeof log === "function") log(`Requesting service tier: ${serviceTier}`);
+  return { service_tier: serviceTier };
+}
+
+/**
+ * Build the `temperature` request field, spread so the key is absent entirely
+ * when no temperature is set or the value is not a finite number.
+ * @param {unknown} temperature
+ * @returns {{temperature?: number}}
+ */
+function temperatureParam(temperature) {
+  if (typeof temperature !== "number" || !Number.isFinite(temperature))
+    return {};
+  return { temperature };
+}
+
+/**
  * Stream a chat completion using native OpenAI-compatible tool calling.
  * Handles parallel tool calls by tracking each tool call by its streaming
  * index, then returning only the first one for the agent framework to process.
@@ -164,8 +217,10 @@ function formatMessagesForTools(messages, options = {}) {
  * @param {Array} messages - Raw aibitat message history
  * @param {Array} functions - Aibitat function definitions
  * @param {function|null} eventHandler - Stream event handler
- * @param {{injectReasoningContent?: boolean, provider?: object}} options - Provider-specific options
+ * @param {{injectReasoningContent?: boolean, provider?: object, maxTokens?: number, maxTokensKey?: string, serviceTier?: string}} options - Provider-specific options
  *   - provider: If passed, automatically handles usage tracking via provider.resetUsage()/recordUsage()
+ *   - maxTokens: If passed as a positive number, sent as `max_tokens` (or `maxTokensKey`) on the request
+ *   - serviceTier: If passed, sent as `service_tier` on the request
  * @returns {Promise<{textResponse: string, functionCall: object|null, uuid: string, usage: object|null}>}
  */
 async function tooledStream(
@@ -176,7 +231,8 @@ async function tooledStream(
   eventHandler = null,
   options = {}
 ) {
-  const { provider, ...formatOptions } = options;
+  const { provider, maxTokens, maxTokensKey, serviceTier, ...formatOptions } =
+    options;
 
   // Auto-reset usage if provider is passed
   if (provider?.resetUsage) {
@@ -191,10 +247,14 @@ async function tooledStream(
 
   const stream = await client.chat.completions.create({
     model,
+    ...temperatureParam(provider?.temperature),
     stream: true,
     stream_options: { include_usage: true },
     messages: formattedMessages,
+    ...maxTokensParam(maxTokens, maxTokensKey),
+    ...serviceTierParam(serviceTier, provider?.providerLog?.bind(provider)),
     ...(tools.length > 0 ? { tools } : {}),
+    ...(provider?.reasoningConfig ?? {}),
   });
 
   const result = {
@@ -205,6 +265,7 @@ async function tooledStream(
   const toolCallsByIndex = {};
   let usage = null;
   let time_info = null;
+  let reasoningText = "";
 
   for await (const chunk of stream) {
     // Capture usage from final chunk (some providers send usage after finish_reason)
@@ -214,7 +275,32 @@ async function tooledStream(
     if (!chunk?.choices?.[0]) continue;
     const choice = chunk.choices[0];
 
+    const reasoningToken = extractReasoningContent(choice.delta);
+    if (reasoningToken) {
+      if (reasoningText.length === 0) {
+        eventHandler?.("reportStreamEvent", {
+          type: "textResponseChunk",
+          uuid: msgUUID,
+          content: `<think>${reasoningToken}`,
+        });
+      } else {
+        eventHandler?.("reportStreamEvent", {
+          type: "textResponseChunk",
+          uuid: msgUUID,
+          content: reasoningToken,
+        });
+      }
+      reasoningText += reasoningToken;
+    }
+
     if (choice.delta?.content) {
+      if (reasoningText.length > 0 && !result.textResponse) {
+        eventHandler?.("reportStreamEvent", {
+          type: "textResponseChunk",
+          uuid: msgUUID,
+          content: "</think>",
+        });
+      }
       result.textResponse += choice.delta.content;
       eventHandler?.("reportStreamEvent", {
         type: "textResponseChunk",
@@ -234,6 +320,9 @@ async function tooledStream(
             id: toolCall.id || `call_${v4()}`,
             name: toolCall.function?.name || "",
             arguments: toolCall.function?.arguments || "",
+            ...(toolCall.extra_content
+              ? { extra_content: toolCall.extra_content }
+              : {}),
           };
         } else {
           // Update existing entry with streamed data
@@ -245,6 +334,9 @@ async function tooledStream(
           }
           if (toolCall.function?.arguments) {
             toolCallsByIndex[idx].arguments += toolCall.function.arguments;
+          }
+          if (toolCall.extra_content) {
+            toolCallsByIndex[idx].extra_content = toolCall.extra_content;
           }
         }
 
@@ -266,6 +358,14 @@ async function tooledStream(
     } catch {}
   }
 
+  if (reasoningText.length > 0 && !result.textResponse) {
+    eventHandler?.("reportStreamEvent", {
+      type: "textResponseChunk",
+      uuid: msgUUID,
+      content: "</think>",
+    });
+  }
+
   const toolCallIndices = Object.keys(toolCallsByIndex).map(Number);
   if (toolCallIndices.length > 0) {
     const firstToolCall = toolCallsByIndex[Math.min(...toolCallIndices)];
@@ -273,11 +373,19 @@ async function tooledStream(
       id: firstToolCall.id,
       name: firstToolCall.name,
       arguments: safeJsonParse(firstToolCall.arguments, {}),
+      ...(firstToolCall.extra_content
+        ? { extra_content: firstToolCall.extra_content }
+        : {}),
     };
   }
 
+  let textResponse = result.textResponse;
+  if (reasoningText.trim().length > 0 && !result.functionCall) {
+    textResponse = `<think>${reasoningText}</think>${textResponse}`;
+  }
+
   return {
-    textResponse: result.textResponse,
+    textResponse,
     functionCall: result.functionCall,
     uuid: msgUUID,
     usage,
@@ -293,8 +401,9 @@ async function tooledStream(
  * @param {Array} messages - Raw aibitat message history
  * @param {Array} functions - Aibitat function definitions
  * @param {function} getCostFn - Provider's getCost function
- * @param {{injectReasoningContent?: boolean, provider?: object}} options - Provider-specific options
+ * @param {{injectReasoningContent?: boolean, provider?: object, maxTokens?: number, maxTokensKey?: string, serviceTier?: string}} options - Provider-specific options
  *   - provider: If passed, automatically handles usage tracking via provider.resetUsage()/recordUsage()
+ *   - maxTokens: If passed as a positive number, sent as `max_tokens` (or `maxTokensKey`) on the request
  * @returns {Promise<{textResponse: string|null, functionCall: object|null, cost: number, usage: object|null}>}
  */
 async function tooledComplete(
@@ -305,7 +414,8 @@ async function tooledComplete(
   getCostFn = () => 0,
   options = {}
 ) {
-  const { provider, ...formatOptions } = options;
+  const { provider, maxTokens, maxTokensKey, serviceTier, ...formatOptions } =
+    options;
 
   // Auto-reset usage if provider is passed
   if (provider?.resetUsage) {
@@ -319,9 +429,13 @@ async function tooledComplete(
 
   const response = await client.chat.completions.create({
     model,
+    ...temperatureParam(provider?.temperature),
     stream: false,
     messages: formattedMessages,
+    ...maxTokensParam(maxTokens, maxTokensKey),
+    ...serviceTierParam(serviceTier, provider?.providerLog?.bind(provider)),
     ...(tools.length > 0 ? { tools } : {}),
+    ...(provider?.reasoningConfig ?? {}),
   });
 
   const completion = response.choices[0].message;
@@ -350,6 +464,9 @@ async function tooledComplete(
             id: toolCall.id,
             name: toolCall.function.name,
             arguments: toolCall.function.arguments,
+            ...(toolCall.extra_content
+              ? { extra_content: toolCall.extra_content }
+              : {}),
           },
         },
         cost,
@@ -363,14 +480,23 @@ async function tooledComplete(
         id: toolCall.id,
         name: toolCall.function.name,
         arguments: functionArgs,
+        ...(toolCall.extra_content
+          ? { extra_content: toolCall.extra_content }
+          : {}),
       },
       cost,
       usage,
     };
   }
 
+  const reasoning = extractReasoningContent(completion);
+  let textResponse = completion.content;
+  if (reasoning && reasoning.trim().length > 0) {
+    textResponse = `<think>${reasoning}</think>${textResponse}`;
+  }
+
   return {
-    textResponse: completion.content,
+    textResponse,
     cost,
     usage,
   };
@@ -381,4 +507,7 @@ module.exports = {
   formatMessagesForTools,
   tooledStream,
   tooledComplete,
+  temperatureParam,
+  serviceTierParam,
+  maxTokensParam,
 };

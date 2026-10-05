@@ -9,6 +9,7 @@ const { tokenizeString } = require("../../tokenizer");
 const path = require("path");
 const fs = require("fs");
 const RuntimeSettings = require("../../runtimeSettings");
+const { decodePathname } = require("../../url");
 
 async function discoverLinks(startUrl, maxDepth = 1, maxLinks = 20) {
   const baseUrl = new URL(startUrl);
@@ -78,7 +79,7 @@ async function getPageLinks(url, baseUrl) {
     });
     const docs = await loader.load();
     const html = docs[0].pageContent;
-    const links = extractLinks(html, baseUrl);
+    const links = extractLinks(html, baseUrl, new URL(url));
     return links;
   } catch (error) {
     console.error(`Failed to get page links from ${url}.`, error);
@@ -86,22 +87,39 @@ async function getPageLinks(url, baseUrl) {
   }
 }
 
-function extractLinks(html, baseUrl) {
+function extractLinks(html, baseUrl, pageUrl = baseUrl) {
   const root = parse(html);
   const links = root.querySelectorAll("a");
   const extractedLinks = new Set();
 
+  // The start URL's parent path, or "" for a bare origin, which stays
+  // site-wide. Comparing the parsed origin and whole path segments rather
+  // than a string prefix: "https://example.com" also prefixed
+  // "https://example.com.evil.net", and "/docs" also prefixed
+  // "/docs-private".
+  const parentPath = baseUrl.pathname.split("/").slice(0, -1).join("/");
+  const scopePath = parentPath === "/" ? "" : parentPath;
+
   for (const link of links) {
     const href = link.getAttribute("href");
-    if (href) {
-      const absoluteUrl = new URL(href, baseUrl.href).href;
-      if (
-        absoluteUrl.startsWith(
-          baseUrl.origin + baseUrl.pathname.split("/").slice(0, -1).join("/")
-        )
-      ) {
-        extractedLinks.add(absoluteUrl);
-      }
+    if (!href) continue;
+
+    // A single malformed href (e.g. href="http://") must not abort
+    // extraction of the page's remaining links.
+    let absoluteUrl;
+    try {
+      absoluteUrl = new URL(href, pageUrl.href);
+    } catch {
+      continue;
+    }
+
+    const inScope =
+      absoluteUrl.origin === baseUrl.origin &&
+      (!scopePath ||
+        absoluteUrl.pathname === scopePath ||
+        absoluteUrl.pathname.startsWith(`${scopePath}/`));
+    if (inScope) {
+      extractedLinks.add(absoluteUrl.href);
     }
   }
 
@@ -156,7 +174,7 @@ async function bulkScrapePages(links, outFolderPath) {
       }
 
       const url = new URL(link);
-      const decodedPathname = decodeURIComponent(url.pathname);
+      const decodedPathname = decodePathname(url.pathname);
       const filename = `${url.hostname}${decodedPathname.replace(/\//g, "_")}`;
 
       const data = {
@@ -209,3 +227,5 @@ async function websiteScraper(startUrl, depth = 1, maxLinks = 20) {
 }
 
 module.exports = websiteScraper;
+// Exposed for tests; the scraper itself is the module's callable export.
+module.exports.extractLinks = extractLinks;

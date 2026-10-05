@@ -52,6 +52,7 @@ const TRANSLATIONS = {
     "workspaces-name": "اسم مساحة العمل",
     selection: "اختيار النموذج",
     saving: "حفظ...",
+    saved: "تم الحفظ",
     save: "حفظ التغييرات",
     previous: "الصفحة السابقة",
     next: "الصفحة التالية",
@@ -66,6 +67,7 @@ const TRANSLATIONS = {
     stopped: "توقف",
     loading: "تحميل",
     refresh: "استعيد/جدد",
+    noResults: "لم يتم العثور على أي نتائج",
   },
   settings: {
     title: "إعدادات المثيل",
@@ -109,6 +111,7 @@ const TRANSLATIONS = {
     },
     "scheduled-jobs": "المهام المجدولة",
     "model-router": "نموذج جهاز التوجيه",
+    "image-generation": "إنشاء الصور",
   },
   login: {
     "multi-user": {
@@ -237,6 +240,22 @@ const TRANSLATIONS = {
       title: "حرارة نموذج التعلم العميق",
       "desc-end":
         "كلما زاد العدد كلما كان الإبداع أكبر. بالنسبة لبعض النماذج، قد يؤدي هذا إلى استجابات غير منسجمة عند ضبطها على رقم مرتفع للغاية.",
+      placeholder: "الافتراضي للمزوّد",
+    },
+    reasoning_effort: {
+      title: "جهد الاستدلال",
+      default: "الافتراضي للمزوّد",
+      cannot_disable: "لا يمكن لهذا النموذج إيقاف الاستدلال.",
+      levels: {
+        off: "إيقاف",
+        on: "تشغيل",
+        minimal: "أدنى",
+        low: "منخفض",
+        medium: "متوسط",
+        high: "مرتفع",
+        xhigh: "مرتفع جدًا",
+        max: "أقصى",
+      },
     },
   },
   "vector-workspace": {
@@ -314,8 +333,6 @@ const TRANSLATIONS = {
         description:
           "اسمح لمسؤولك بالاستفادة من SQL للإجابة على أسئلتك من خلال الاتصال بمقدمي قواعد البيانات المختلفة.",
       },
-      default_skill:
-        "افتراضيًا، يتم تفعيل هذه الميزة، ولكن يمكنك تعطيلها إذا لم ترغب في أن تكون متاحة للممثل.",
       filesystem: {
         title: "الوصول إلى نظام الملفات",
         description:
@@ -709,6 +726,11 @@ const TRANSLATIONS = {
         description:
           'اسمح للمتخصص بإنشاء مهام متكررة وفقًا للجدول الزمني المحدد من خلال الدردشة (مثل: "كل يوم عمل في الساعة 9 صباحًا، قم بتلخيص صندوق بريدي وإرسال رسالة لي"). متاح فقط في وضع المستخدم الواحد.',
       },
+      generateImage: {
+        title: "إنشاء صور",
+        description:
+          "اسمح للوكيل بإنشاء صور من المحادثة، أو بتحرير الصور المرفقة بالمحادثة، باستخدام مزود الخدمة الذي قمت بتكوينه لإنشاء الصور.",
+      },
     },
     mcp: {
       title: "خوادم نظام MCP",
@@ -1063,6 +1085,8 @@ const TRANSLATIONS = {
       save_embed: "حفظ و تضمين",
       "total-documents_one": "{{count}}",
       "total-documents_other": "{{count}} المستندات",
+      "search-results_one": "النتيجة {{count}}",
+      "search-results_other": "نتائج {{count}}",
     },
     upload: {
       "processor-offline": "غير متاح",
@@ -1110,6 +1134,32 @@ const TRANSLATIONS = {
       processing_time: "قد يستغرق ذلك بعض الوقت، اعتمادًا على حجم الخزانة.",
       vault_warning:
         "لتجنب أي تعارضات، تأكد من أن مجلد Obsidian الخاص بك ليس مفتوحًا حاليًا.",
+    },
+    gitea: {
+      name: "مستودع Gitea",
+      description:
+        "استيراد مستودع كامل، سواء كان عامًا أو خاصًا، من أي خادم Gitea بنقرة واحدة فقط.",
+      URL: "عنوان مستودع Gitea",
+      URL_explained:
+        "عنوان المستودع الذي ترغب في استنساخه على خادم Gitea الخاص بك – يتم دعم الخوادم التي تستضيفها بنفسك.",
+      token: "رمز الوصول إلى Gitea",
+      optional: "اختياري",
+      token_explained:
+        "يجب الحصول على رمز الوصول لجمع المستودعات الخاصة أو المستودعات الموجودة على الخوادم التي تتطلب المصادقة.",
+      token_explained_start: "بدون",
+      token_explained_link1: "رمز الوصول",
+      token_explained_end:
+        "، يمكن جمع البيانات فقط من المستودعات التي تعرضها نسخة Gitea الخاصة بك علنًا.",
+      ignores: "يتجاهل الملف",
+      git_ignore:
+        'قم بإنشاء قائمة بتنسيق ".gitignore" لتجاهل الملفات المحددة أثناء عملية الاستنساخ. اضغط على مفتاح الإدخال بعد كل إدخال ترغب في حفظه.',
+      task_explained:
+        "بمجرد الانتهاء، ستكون جميع الملفات متاحة لإدراجها في مساحات العمل ضمن أداة اختيار المستندات.",
+      branch: "الفرع الذي ترغب في استرجاع الملفات منه.",
+      branch_loading: "– تحميل الفروع المتاحة –",
+      branch_explained: "الفرع الذي ترغب في استرجاع الملفات منه.",
+      token_information:
+        "بدون إدخال رمز الوصول <b> الخاص بـ Gitea، فإن هذا الموصل للبيانات سيكون قادرًا فقط على جمع الملفات من المستودعات التي يمكن قراءتها بشكل <b> علني على مثيل Gitea الخاص بك.",
     },
   },
   chat_window: {
@@ -1248,6 +1298,19 @@ const TRANSLATIONS = {
     stt_transcription_failed: "فشلت عملية النسخ: {{error}}",
     export: "تصدير المحادثة كـ...",
     exporting: "التصدير...",
+    preset_img_description: "إنشاء صورة بناءً على نص معين.",
+    generating_response: "إنشاء رد",
+    response_failed: "لم أتمكن من الرد على الرسالة.",
+    response_failed_reason: "السبب: {{reason}}",
+    thought_in_progress: "النموذج يفكر...",
+    thoughts: "أفكار",
+    leave_generating: {
+      title: "هل تريد التوقف عن إنشاء ردود؟",
+      description:
+        "أنت على وشك الخروج من هذا المحادثة، وهذا سيمنع النموذج من إنشاء الرد، ولا يمكن استعادته.",
+      cancel: "إلغاء",
+      confirm: "استمر",
+    },
   },
   profile_settings: {
     edit_account: "تحرير الحساب",
@@ -1350,6 +1413,11 @@ const TRANSLATIONS = {
         description:
           "تقديم استجابات HTML في استجابات المساعد.\nيمكن أن يؤدي ذلك إلى تحسين كبير في جودة الاستجابة، ولكنه قد يؤدي أيضًا إلى مخاطر أمنية محتملة.",
       },
+      "disable-auto-scroll": {
+        title: "تعطيل التمرير التلقائي",
+        description:
+          "تعطيل التمرير التلقائي إلى أسفل نافذة الدردشة عند استلام رسائل جديدة.",
+      },
     },
   },
   "main-page": {
@@ -1359,6 +1427,35 @@ const TRANSLATIONS = {
       uploadDocument: "تحميل مستند",
     },
     greeting: "كيف يمكنني مساعدتك اليوم؟",
+    greetings: {
+      anytime: {
+        working_on: "على ماذا نعمل؟",
+        on_your_mind: "ما الذي يدور في ذهنك؟",
+        where_to_start: "من أين نبدأ؟",
+        ready: "جاهز متى كنت مستعدًا.",
+        think_it_through: "لنفكّر في الأمر جيدًا.",
+      },
+      morning: {
+        good_morning: "صباح الخير",
+        first_today: "صباح الخير. بماذا نبدأ اليوم؟",
+        fresh_start: "بداية جديدة. من أين نبدأ؟",
+      },
+      afternoon: {
+        good_afternoon: "طاب يومك",
+        tackling: "طاب يومك. ما الذي سننجزه؟",
+        next_on_list: "ما التالي في القائمة؟",
+        keep_moving: "لنواصل التقدّم.",
+      },
+      evening: {
+        good_evening: "مساء الخير",
+        finish_strong: "مساء الخير. لننهِ يومنا بقوة.",
+      },
+      night: {
+        midnight_oil: "تسهر على العمل؟",
+        late_one: "ليلة طويلة؟ لنفكّر في الأمر جيدًا.",
+        still_up: "ما زلت مستيقظًا؟ جاهز متى كنت مستعدًا.",
+      },
+    },
   },
   "keyboard-shortcuts": {
     title: "اختصارات لوحة المفاتيح",
@@ -1887,6 +1984,22 @@ const TRANSLATIONS = {
       "routed-to": "تم توجيهه إلى <route>{{model}}</route>",
       "routed-to-rule":
         "تم توجيهه إلى <route>{{model}}</route> عبر <rule>{{ruleTitle}}</rule>",
+    },
+  },
+  imageGeneration: {
+    title: "تفضيلات إنشاء الصور",
+    description: "قم بتكوين المزود المستخدم لإنشاء الصور من أمر `/img`.",
+    provider: "مزود خدمة إنشاء الصور",
+    card: {
+      "failed-to-load": "فشلت عملية تحميل الصورة.",
+      "alt-text": "الصورة التي تم إنشاؤها",
+      edit: "تحرير",
+      download: "تنزيل",
+    },
+    pending: {
+      heading: "إنشاء صورتك…",
+      description: "قد يستغرق ذلك بعض الوقت. سيظهر هنا بمجرد أن يكون جاهزًا.",
+      aborted: "تم إلغاء عملية إنشاء الصورة.",
     },
   },
 };

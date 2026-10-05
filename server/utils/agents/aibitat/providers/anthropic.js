@@ -1,3 +1,4 @@
+const { reasoningParams } = require("../../../helpers/reasoningEffort");
 const Anthropic = require("@anthropic-ai/sdk");
 const { AnthropicLLM } = require("../../../AiProviders/anthropic");
 const { RetryError } = require("../error.js");
@@ -5,6 +6,7 @@ const Provider = require("./ai-provider.js");
 const { v4 } = require("uuid");
 const { safeJsonParse } = require("../../../http");
 const { getAnythingLLMUserAgent } = require("../../../../endpoints/utils");
+const { dereferenceSchema } = require("./helpers/dereferenceSchema");
 
 /**
  * The agent provider for the Anthropic API.
@@ -23,6 +25,7 @@ class AnthropicProvider extends Provider {
         },
       },
       model = "claude-sonnet-4-6",
+      reasoningEffort = null,
     } = config;
 
     const client = new Anthropic(options);
@@ -30,6 +33,16 @@ class AnthropicProvider extends Provider {
     super(client);
     this.providerTag = "anthropic";
     this.model = model;
+    this.reasoningEffort = reasoningEffort;
+  }
+
+  /**
+   * The reasoning portion of the request body. The effort is validated against
+   * the model before the provider is built, so it only needs mapping here.
+   * @returns {object}
+   */
+  get reasoningConfig() {
+    return reasoningParams("anthropic", this.reasoningEffort, this.model);
   }
 
   /**
@@ -217,7 +230,11 @@ class AnthropicProvider extends Provider {
   #formatFunctions(functions = []) {
     return functions.map((func) => {
       const { name, description, parameters, required } = func;
-      const { type, properties } = parameters;
+      // Some MCP tools (e.g. Pydantic v2 nested models) describe their parameters
+      // with `$ref`/`$defs`. Anthropic's `input_schema` does not resolve local
+      // references, so we inline them here - otherwise the dangling pointer crashes
+      // the tool call. Flat schemas are left unchanged. See issue #3938.
+      const { type, properties } = dereferenceSchema(parameters);
       return {
         name,
         description,
@@ -256,6 +273,7 @@ class AnthropicProvider extends Provider {
           ...(Array.isArray(functions) && functions?.length > 0
             ? { tools: this.#formatFunctions(functions) }
             : {}),
+          ...this.reasoningConfig,
         },
         { headers: { "anthropic-beta": "tools-2024-04-04" } } // Required to we can use tools.
       );
@@ -403,6 +421,7 @@ class AnthropicProvider extends Provider {
           ...(Array.isArray(functions) && functions?.length > 0
             ? { tools: this.#formatFunctions(functions) }
             : {}),
+          ...this.reasoningConfig,
         },
         { headers: { "anthropic-beta": "tools-2024-04-04" } } // Required to we can use tools.
       );
@@ -426,11 +445,11 @@ class AnthropicProvider extends Provider {
         // wtf.
         let thought = response.content.find((res) => res.type === "text");
         thought =
-          thought?.content?.length > 0
+          thought?.text?.length > 0
             ? {
-                role: thought.role,
+                role: "assistant",
                 content: [
-                  { type: "text", text: thought.content },
+                  { type: "text", text: thought.text },
                   { ...toolCall },
                 ],
               }

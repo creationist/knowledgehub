@@ -23,7 +23,7 @@
  * @property {ResponseMetrics} metrics - The response metrics
  *
  * @typedef {Object} ChatCompletionOptions
- * @property {number} temperature - The sampling temperature for the LLM response
+ * @property {number} temperature - Per-call override of the connector's temperature (defaults to the instance's `temperature` property)
  * @property {import("@prisma/client").users} user - The user object for the chat completion to send to the LLM provider for user tracking (optional)
  *
  * @typedef {function(Array<ChatMessage>, ChatCompletionOptions): Promise<ChatCompletionResponse>} getChatCompletionFunction
@@ -35,7 +35,7 @@
  * @typedef {Object} BaseLLMProvider - A basic llm provider object
  * @property {string} className - Provider identifier used in logs and response metrics.
  * @property {string} model - The active model name for this provider instance.
- * @property {number} defaultTemp - Default sampling temperature (typically 0.7).
+ * @property {number|undefined} temperature - Sampling temperature for chat requests. Undefined when unset so the parameter is omitted entirely.
  * @property {Function} streamingEnabled - Checks if streaming is enabled for chat completions.
  * @property {Function} promptWindowLimit - Returns the token limit for the current model.
  * @property {Function} isValidChatCompletionModel - Validates if the provided model is suitable for chat completion.
@@ -127,13 +127,49 @@ function getVectorDbClass(getExactly = null) {
 }
 
 /**
+ * Resolves the temperature to apply to a provider's chat requests.
+ * Unset or invalid values resolve to undefined - as do models the provider
+ * class reports as rejecting the parameter - so it is omitted from requests entirely.
+ * @param {string|null} provider - Provider slug (eg: "openai")
+ * @param {string|null} model - The model name the requests will use
+ * @param {number|string|null} value - The stored/user-provided temperature
+ * @returns {number|undefined}
+ */
+function resolveTemperature(provider = null, model = null, value = null) {
+  const temperature = parseFloat(value);
+  if (isNaN(temperature) || temperature < 0) return undefined;
+  const LLMClass = getLLMProviderClass({ provider });
+  if (LLMClass?.modelSupportsTemperature?.(model) === false) return undefined;
+  return temperature;
+}
+
+/**
  * Returns the LLMProvider with its embedder attached via system or via defined provider.
  * @notice Use resolveProviderConnector instead as this function DOES NOT handle the anythingllm-router provider.
  * You should only use this function if you are absolutely sure you are not using the anythingllm-router provider ever in your code.
+ * @param {{provider: string | null, model: string | null, temperature: number|string|null} | null} params - Initialize params for LLMs provider
+ * @returns {BaseLLMProvider}
+ */
+function getLLMProvider({
+  provider = null,
+  model = null,
+  temperature = null,
+} = {}) {
+  const connector = getLLMProviderConnector({ provider, model });
+  connector.temperature = resolveTemperature(
+    provider ?? process.env.LLM_PROVIDER ?? "openai",
+    connector.model,
+    temperature
+  );
+  return connector;
+}
+
+/**
+ * Instantiates the raw LLM connector class for a provider selection.
  * @param {{provider: string | null, model: string | null} | null} params - Initialize params for LLMs provider
  * @returns {BaseLLMProvider}
  */
-function getLLMProvider({ provider = null, model = null } = {}) {
+function getLLMProviderConnector({ provider = null, model = null } = {}) {
   const LLMSelection = provider ?? process.env.LLM_PROVIDER ?? "openai";
   const embedder = getEmbeddingEngineSelection();
 
@@ -228,11 +264,9 @@ function getLLMProvider({ provider = null, model = null } = {}) {
     case "giteeai":
       const { GiteeAILLM } = require("../AiProviders/giteeai");
       return new GiteeAILLM(embedder, model);
-    case "docker-model-runner":
-      const {
-        DockerModelRunnerLLM,
-      } = require("../AiProviders/dockerModelRunner");
-      return new DockerModelRunnerLLM(embedder, model);
+    case "llmman":
+      const { LlmmanLLM } = require("../AiProviders/llmman");
+      return new LlmmanLLM(embedder, model);
     case "privatemode":
       const { PrivatemodeLLM } = require("../AiProviders/privatemode");
       return new PrivatemodeLLM(embedder, model);
@@ -251,6 +285,9 @@ function getLLMProvider({ provider = null, model = null } = {}) {
     case "cerebras":
       const { CerebrasLLM } = require("../AiProviders/cerebras");
       return new CerebrasLLM(embedder, model);
+    case "vertex":
+      const { VertexLLM } = require("../AiProviders/vertex");
+      return new VertexLLM(embedder, model);
     case "anythingllm-router":
       // Model router is handled separately in stream.js via AnythingLLMModelRouter.
       // This case should not be hit directly - if it is, throw a descriptive error.
@@ -319,6 +356,45 @@ function getEmbeddingEngineSelection() {
       return new LemonadeEmbedder();
     default:
       return new NativeEmbedder();
+  }
+}
+
+/**
+ * Returns the configured image generation provider instance.
+ * Selected system-wide via the IMAGE_GEN_PROVIDER env, mirroring the
+ * embedder/vector-db subsystem selection.
+ * @returns {import("../ImageGenerators/base").BaseImageGenerator}
+ */
+function getImageGeneratorProvider() {
+  const provider = process.env.IMAGE_GEN_PROVIDER;
+  switch (provider) {
+    case "openai":
+      const { OpenAiImageGenerator } = require("../ImageGenerators/openAi");
+      return new OpenAiImageGenerator();
+    case "ollama":
+      const { OllamaImageGenerator } = require("../ImageGenerators/ollama");
+      return new OllamaImageGenerator();
+    case "lemonade":
+      const { LemonadeImageGenerator } = require("../ImageGenerators/lemonade");
+      return new LemonadeImageGenerator();
+    case "localai":
+      const { LocalAiImageGenerator } = require("../ImageGenerators/localAi");
+      return new LocalAiImageGenerator();
+    case "llmman":
+      const { LlmmanImageGenerator } = require("../ImageGenerators/llmman");
+      return new LlmmanImageGenerator();
+    case "openrouter":
+      const {
+        OpenRouterImageGenerator,
+      } = require("../ImageGenerators/openRouter");
+      return new OpenRouterImageGenerator();
+    case "gemini":
+      const { GeminiImageGenerator } = require("../ImageGenerators/gemini");
+      return new GeminiImageGenerator();
+    default:
+      throw new Error(
+        `No valid image generation provider was set. Got: ${provider}`
+      );
   }
 }
 
@@ -419,14 +495,12 @@ function getLLMProviderClass({ provider = null } = {}) {
     case "giteeai":
       const { GiteeAILLM } = require("../AiProviders/giteeai");
       return GiteeAILLM;
-    case "docker-model-runner":
-      const {
-        DockerModelRunnerLLM,
-      } = require("../AiProviders/dockerModelRunner");
-      return DockerModelRunnerLLM;
+    case "llmman":
+      const { LlmmanLLM } = require("../AiProviders/llmman");
+      return LlmmanLLM;
     case "privatemode":
-      const { PrivateModeLLM } = require("../AiProviders/privatemode");
-      return PrivateModeLLM;
+      const { PrivatemodeLLM } = require("../AiProviders/privatemode");
+      return PrivatemodeLLM;
     case "sambanova":
       const { SambaNovaLLM } = require("../AiProviders/sambanova");
       return SambaNovaLLM;
@@ -442,6 +516,9 @@ function getLLMProviderClass({ provider = null } = {}) {
     case "cerebras":
       const { CerebrasLLM } = require("../AiProviders/cerebras");
       return CerebrasLLM;
+    case "vertex":
+      const { VertexLLM } = require("../AiProviders/vertex");
+      return VertexLLM;
     case "anythingllm-router":
       const { AnythingLLMModelRouter } = require("../AiProviders/modelRouter");
       return AnythingLLMModelRouter;
@@ -517,8 +594,8 @@ function getBaseLLMProviderModel({ provider = null } = {}) {
       return process.env.ZAI_MODEL_PREF;
     case "giteeai":
       return process.env.GITEE_AI_MODEL_PREF;
-    case "docker-model-runner":
-      return process.env.DOCKER_MODEL_RUNNER_LLM_MODEL_PREF;
+    case "llmman":
+      return process.env.LLMMAN_MODEL_PREF;
     case "privatemode":
       return process.env.PRIVATEMODE_LLM_MODEL_PREF;
     case "sambanova":
@@ -531,6 +608,8 @@ function getBaseLLMProviderModel({ provider = null } = {}) {
       return process.env.MINIMAX_MODEL_PREF;
     case "cerebras":
       return process.env.CEREBRAS_MODEL_PREF;
+    case "vertex":
+      return process.env.VERTEX_AI_LLM_MODEL_PREF;
     default:
       return null;
   }
@@ -629,6 +708,7 @@ function humanFileSize(bytes, si = false, dp = 1) {
  * @param {Object|null} [opts.chatHistoryOverride] - Pre-fetched chat history
  * @param {number|null} [opts.messageCountOverride] - Override for message count
  * @param {string|null} [opts.apiSessionId] - API session scope
+ * @param {number|string|null} [opts.temperature] - Per-request temperature override (defaults to the workspace setting)
  * @returns {Promise<{connector: BaseLLMProvider, routingMetadata: Object|null, prefetchedContext: Object|null}>}
  */
 async function resolveProviderConnector({
@@ -640,14 +720,19 @@ async function resolveProviderConnector({
   chatHistoryOverride = null,
   messageCountOverride = null,
   apiSessionId = null,
+  temperature = null,
 }) {
   const effectiveProvider = workspace?.chatProvider || process.env.LLM_PROVIDER;
+  // An override that is not a usable temperature (eg: absent from an API request)
+  // defers to the workspace setting rather than omitting the parameter.
+  const temperatureOverride = parseFloat(temperature) >= 0 ? temperature : null;
 
   if (effectiveProvider !== "anythingllm-router") {
     return {
       connector: getLLMProvider({
         provider: workspace?.chatProvider,
         model: workspace?.chatModel,
+        temperature: temperatureOverride ?? workspace?.openAiTemp,
       }),
       routingMetadata: null,
       prefetchedContext: null,
@@ -666,7 +751,11 @@ async function resolveProviderConnector({
           : null,
       };
 
-  const router = new AnythingLLMModelRouter(routerWorkspace);
+  const router = new AnythingLLMModelRouter(
+    routerWorkspace,
+    null,
+    temperatureOverride
+  );
   const ctx = await ModelRouterService.gatherRoutingContext({
     workspace,
     user,
@@ -715,11 +804,13 @@ function stripThinkingFromText(text = "") {
 
 module.exports = {
   getEmbeddingEngineSelection,
+  getImageGeneratorProvider,
   maximumChunkLength,
   getVectorDbClass,
   getLLMProviderClass,
   getBaseLLMProviderModel,
   getLLMProvider,
+  resolveTemperature,
   resolveProviderConnector,
   toChunks,
   humanFileSize,

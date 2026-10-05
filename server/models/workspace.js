@@ -51,7 +51,6 @@ const Workspace = {
     "chatModel",
     "topN",
     "chatMode",
-    // "pfpFilename",
     "agentProvider",
     "agentModel",
     "queryRefusalResponse",
@@ -137,6 +136,12 @@ const Workspace = {
       const id = Number(value);
       if (isNaN(id)) return null;
       return id;
+    },
+    lastUpdatedAt: (value) => {
+      if (value === null || value === undefined) return new Date();
+      const date = new Date(value);
+      if (isNaN(date.getTime())) return new Date();
+      return date;
     },
   },
 
@@ -258,10 +263,7 @@ const Workspace = {
     // When switching away from anythingllm-router, clear router_id.
     if (validatedUpdates?.chatProvider === "anythingllm-router") {
       validatedUpdates.chatModel = null;
-    } else if (
-      validatedUpdates?.chatProvider &&
-      validatedUpdates.chatProvider !== "anythingllm-router"
-    ) {
+    } else if ("chatProvider" in validatedUpdates) {
       validatedUpdates.router_id = null;
     }
 
@@ -649,7 +651,7 @@ const Workspace = {
    */
   deletePromptHistory: async function ({ workspaceId, id }) {
     try {
-      return await PromptHistory.delete({ id, workspaceId });
+      return await PromptHistory.deleteForWorkspace({ id, workspaceId });
     } catch (error) {
       console.error(error.message);
       return false;

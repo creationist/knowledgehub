@@ -51,6 +51,7 @@ const TRANSLATIONS = {
     selection: "模型选择",
     save: "保存更改",
     saving: "保存中...",
+    saved: "已保存",
     previous: "上一页",
     next: "下一页",
     optional: "可选",
@@ -64,6 +65,7 @@ const TRANSLATIONS = {
     stopped: "停止",
     loading: "正在加载…",
     refresh: "重新开始；更新",
+    noResults: "未找到任何结果",
   },
   settings: {
     title: "设置",
@@ -107,6 +109,7 @@ const TRANSLATIONS = {
     },
     "scheduled-jobs": "计划好的任务",
     "model-router": "型号路由器",
+    "image-generation": "图像生成",
   },
   login: {
     "multi-user": {
@@ -133,6 +136,35 @@ const TRANSLATIONS = {
       uploadDocument: "上传文件",
     },
     greeting: "今天我能帮您什么？",
+    greetings: {
+      anytime: {
+        working_on: "我们要做些什么？",
+        on_your_mind: "您在想什么？",
+        where_to_start: "我们从哪里开始？",
+        ready: "随时为您待命。",
+        think_it_through: "我们来好好想一想。",
+      },
+      morning: {
+        good_morning: "早上好",
+        first_today: "早上好。今天先做什么？",
+        fresh_start: "新的开始。从哪里着手？",
+      },
+      afternoon: {
+        good_afternoon: "下午好",
+        tackling: "下午好。我们要处理什么？",
+        next_on_list: "清单上的下一项是什么？",
+        keep_moving: "我们继续推进吧。",
+      },
+      evening: {
+        good_evening: "晚上好",
+        finish_strong: "晚上好。我们漂亮收尾吧。",
+      },
+      night: {
+        midnight_oil: "还在挑灯夜战？",
+        late_one: "忙到这么晚？我们来好好想一想。",
+        still_up: "还没睡？随时为您待命。",
+      },
+    },
   },
   "new-workspace": {
     title: "新工作区",
@@ -235,6 +267,22 @@ const TRANSLATIONS = {
       title: "LLM 温度",
       "desc-end":
         "数字越高越有创意。对于某些模型，如果设置得太高，可能会导致响应不一致。",
+      placeholder: "提供商默认值",
+    },
+    reasoning_effort: {
+      title: "推理强度",
+      default: "提供商默认值",
+      cannot_disable: "此模型无法关闭推理。",
+      levels: {
+        off: "关闭",
+        on: "开启",
+        minimal: "最低",
+        low: "低",
+        medium: "中",
+        high: "高",
+        xhigh: "极高",
+        max: "最高",
+      },
     },
   },
   "vector-workspace": {
@@ -307,8 +355,6 @@ const TRANSLATIONS = {
         description:
           "让您的代理能够利用 SQL 来回答您的问题，只需连接到各种 SQL 数据库提供商即可。",
       },
-      default_skill:
-        "默认情况下，这项技能已启用。但是，如果您不想让该技能被代理使用，您可以将其禁用。",
       filesystem: {
         title: "文件系统访问",
         description:
@@ -677,6 +723,11 @@ const TRANSLATIONS = {
         description:
           "允许代理人根据聊天内容创建重复的计划任务（例如，“每天工作日的早上9点，总结我的收件箱并发送邮件给我”）。仅适用于单用户模式。",
       },
+      generateImage: {
+        title: "生成图像",
+        description:
+          "允许代理使用您配置的图像生成提供商，从聊天内容中生成图片，或编辑与对话相关的图片。",
+      },
     },
     mcp: {
       title: "MCP 服务器",
@@ -815,6 +866,10 @@ const TRANSLATIONS = {
         title: "在聊天中渲染 HTML",
         description:
           "在助手回复中呈现 HTML 响应。\n这可以显著提高回复的质量，但也可能带来潜在的安全风险。",
+      },
+      "disable-auto-scroll": {
+        title: "关闭自动滚动功能",
+        description: "在收到新消息时，取消自动滚动到聊天窗口底部的功能。",
       },
     },
   },
@@ -1088,6 +1143,8 @@ const TRANSLATIONS = {
       save_embed: "保存并嵌入",
       "total-documents_one": "{{count}} 文件",
       "total-documents_other": "{{count}} 类型的文件",
+      "search-results_one": "{{count}} 的结果",
+      "search-results_other": "{{count}} 的结果",
     },
     upload: {
       "processor-offline": "文档处理器不可用",
@@ -1132,6 +1189,31 @@ const TRANSLATIONS = {
       import_vault: "导入保险库",
       processing_time: "根据你的仓库大小，这可能需要一些时间。",
       vault_warning: "为避免冲突，请确保你的 Obsidian 仓库当前未被打开。",
+    },
+    gitea: {
+      name: "Gitea 仓库",
+      description:
+        "只需点击，即可从任何 Gitea 实例中导入整个公共或私有的代码仓库。",
+      URL: "Gitea 仓库 URL",
+      URL_explained:
+        "您希望在您的 Gitea 实例上收集的仓库的 URL – 支持自托管实例。",
+      token: "Gitea 访问令牌",
+      optional: "可选",
+      token_explained:
+        "需要访问令牌才能收集私有仓库或在需要身份验证的实例上的仓库。",
+      token_explained_start: "如果没有",
+      token_explained_link1: "访问令牌",
+      token_explained_end: "只有您的 Gitea 实例公开暴露的仓库才能被收集。",
+      ignores: "忽略文件",
+      git_ignore:
+        "使用 `.gitignore` 格式，列出需要忽略的文件，以便在收集时排除这些文件。 在您想要保存的每个条目后按回车键。",
+      task_explained:
+        "一旦完成，所有文件都将可用于在文档选择器中嵌入到工作空间中。",
+      branch: "您希望从哪个分支获取文件。",
+      branch_loading: "– 加载可用的分支 –",
+      branch_explained: "您希望从哪个分支收集文件。",
+      token_information:
+        "如果没有填写 <b>Gitea 访问令牌</b>，此数据连接器只能从您 Gitea 实例上的公开可读的仓库中收集文件。",
     },
   },
   chat_window: {
@@ -1268,6 +1350,18 @@ const TRANSLATIONS = {
     stt_transcription_failed: "转录失败：{{error}}",
     export: "导出聊天记录为…",
     exporting: "出口…",
+    preset_img_description: "根据文本提示生成图像。",
+    generating_response: "生成回复",
+    response_failed: "无法回复消息。",
+    response_failed_reason: "原因：{{reason}}",
+    thought_in_progress: "正在思考…",
+    thoughts: "想法、思绪",
+    leave_generating: {
+      title: "停止生成回复吗？",
+      description: "您即将退出此对话，这将阻止模型生成回复，并且无法恢复。",
+      cancel: "取消",
+      confirm: "继续",
+    },
   },
   profile_settings: {
     edit_account: "编辑帐户",
@@ -1801,6 +1895,22 @@ const TRANSLATIONS = {
       "routed-to": "已发送至 <route>{{model}}</route>",
       "routed-to-rule":
         "通过<route>、{{model}}、</route>，到达<rule>、{{ruleTitle}}、</rule>",
+    },
+  },
+  imageGeneration: {
+    title: "图像生成偏好",
+    description: "配置用于生成图像的/img 命令所使用的提供商。",
+    provider: "图像生成服务提供商",
+    card: {
+      "failed-to-load": "图片加载失败",
+      "alt-text": "生成的图像",
+      edit: "编辑",
+      download: "下载",
+    },
+    pending: {
+      heading: "正在生成您的图像…",
+      description: "这可能需要一些时间。一旦准备好，它就会在这里显示出来。",
+      aborted: "图像生成已终止。",
     },
   },
 };

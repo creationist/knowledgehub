@@ -54,6 +54,7 @@ const TRANSLATIONS = {
     "workspaces-name": "Nom de l'espai de treball",
     selection: "Selecció de model",
     saving: "Desant...",
+    saved: "Desat",
     save: "Desa els canvis",
     previous: "Pàgina anterior",
     next: "Pàgina següent",
@@ -68,6 +69,7 @@ const TRANSLATIONS = {
       "El nom d'usuari ha de tenir entre 2 i 64 caràcters, començar amb una lletra minúscula i només pot contenir lletres minúscules, números, guions baixos, guions i punts.",
     loading: "Carregant",
     refresh: "Actualitza",
+    noResults: "No s'han trobat resultats",
   },
   home: {
     welcome: "Benvingut",
@@ -118,6 +120,7 @@ const TRANSLATIONS = {
     },
     "scheduled-jobs": "Tasques programades",
     "model-router": "Rúter de model",
+    "image-generation": "Generació d'imatges",
   },
   login: {
     "multi-user": {
@@ -145,6 +148,35 @@ const TRANSLATIONS = {
       createAgent: "Crea un agent",
       editWorkspace: "Edita l'espai de treball",
       uploadDocument: "Puja un document",
+    },
+    greetings: {
+      anytime: {
+        working_on: "En què estem treballant?",
+        on_your_mind: "Què tens al cap?",
+        where_to_start: "Per on comencem?",
+        ready: "A punt quan tu ho estiguis.",
+        think_it_through: "Pensem-hi bé.",
+      },
+      morning: {
+        good_morning: "Bon dia",
+        first_today: "Bon dia. Què fem primer avui?",
+        fresh_start: "Un nou començament. Per on comencem?",
+      },
+      afternoon: {
+        good_afternoon: "Bona tarda",
+        tackling: "Bona tarda. Què abordem?",
+        next_on_list: "Què toca ara de la llista?",
+        keep_moving: "Seguim endavant.",
+      },
+      evening: {
+        good_evening: "Bon vespre",
+        finish_strong: "Bon vespre. Acabem amb força.",
+      },
+      night: {
+        midnight_oil: "Treballant fins tard?",
+        late_one: "Nit llarga? Pensem-hi bé.",
+        still_up: "Encara per aquí? A punt quan tu ho estiguis.",
+      },
     },
   },
   "new-workspace": {
@@ -255,6 +287,22 @@ const TRANSLATIONS = {
       title: "Temperatura del LLM",
       "desc-end":
         "Com més alt sigui el número, més creatiu serà. Per a alguns models, això pot provocar respostes incoherents si és massa alt.",
+      placeholder: "Valor per defecte del proveïdor",
+    },
+    reasoning_effort: {
+      title: "Esforç de raonament",
+      default: "Valor per defecte del proveïdor",
+      cannot_disable: "Aquest model no pot desactivar el raonament.",
+      levels: {
+        off: "Desactivat",
+        on: "Activat",
+        minimal: "Mínim",
+        low: "Baix",
+        medium: "Mitjà",
+        high: "Alt",
+        xhigh: "Molt alt",
+        max: "Màxim",
+      },
     },
   },
   "vector-workspace": {
@@ -543,8 +591,6 @@ const TRANSLATIONS = {
           },
         },
       },
-      default_skill:
-        "Per defecte, aquesta habilitat està activada, però pots desactivar-la si no vols que estigui disponible per a l'agent.",
       outlook: {
         title: "Connector per a Outlook",
         description:
@@ -745,6 +791,11 @@ const TRANSLATIONS = {
         description:
           'Permet que l\'agent creï tasques programades recurrents a partir del missatge (per exemple, "cada dia de dilluny a les 9 del matí, resumeix la meva caixa de correu i envia un correu electrònic"). Només disponible en mode per a un usuari.',
       },
+      generateImage: {
+        title: "Generar imatges",
+        description:
+          "Permet que l'agent generi imatges a partir del xat, o editi les imatges adjuntes a la conversa, utilitzant el proveïdor de generació d'imatges configurat.",
+      },
     },
     mcp: {
       title: "Servidors MCP",
@@ -901,6 +952,11 @@ const TRANSLATIONS = {
         title: "Renderitza HTML al xat",
         description:
           "Renderitza l'HTML a les respostes de l'assistent.\nAixò pot donar com a resultat una qualitat de resposta molt més alta, però també pot comportar riscos potencials de seguretat.",
+      },
+      "disable-auto-scroll": {
+        title: "Desactivar el desplaçament automàtic",
+        description:
+          "Desactivar el recorregut automàtic fins al final del missatge quan s'arriben a rebre nous missatges.",
       },
     },
   },
@@ -1294,6 +1350,8 @@ const TRANSLATIONS = {
       deselect_all: "Desselecciona-ho tot",
       remove_selected: "Elimina la selecció",
       save_embed: "Desa i incrusta",
+      "search-results_one": "{{count}} resultat",
+      "search-results_other": "{{count}} resultats",
     },
     upload: {
       "processor-offline": "Processador de documents no disponible",
@@ -1330,6 +1388,32 @@ const TRANSLATIONS = {
       watch_explained_block3_link: "Gestor de fitxers",
       watch_explained_block3_end: ".",
       accept: "D'acord, entès",
+    },
+    gitea: {
+      name: "Repos de Gitea",
+      description:
+        "Importar un repositori públic o privat complet des de qualsevol instància de Gitea amb un sol clic.",
+      URL: "URL del repositori de Gitea",
+      URL_explained:
+        "URL del repositori que voleu obtenir a la vostra instància de Gitea – s'adrecen les instàncies autohospedades.",
+      token: "Token d'accés de Gitea",
+      optional: "opcional",
+      token_explained:
+        "S'requereix un token d'accés per accedir a repositoris privats o a repositoris en instàncies que requereixen autenticació.",
+      token_explained_start: "Sense",
+      token_explained_link1: "Token d'accés",
+      token_explained_end:
+        "Només es poden obtenir repositoris que la vostra instal·lació de Gitea exposi públicament.",
+      ignores: "El fitxer és ignorat",
+      git_ignore:
+        'Crea un fitxer amb el format ".gitignore" per ignorar els fitxers específics durant la recopilació. Prem "Enter" després de cada entrada que vulguis guardar.',
+      task_explained:
+        "Un cop estiguin complets, tots els fitxers estaran disponibles per incorporar-los a les àrees de treball dins del selector de documents.",
+      branch: "La branca des d'on voleu obtenir els fitxers.",
+      branch_loading: "— Carregant branques disponibles —",
+      branch_explained: "La branca des d'on voleu obtenir els fitxers.",
+      token_information:
+        "Sense introduir el token d'accés de Gitea, aquest connector de dades només podrà obtenir fitxers de repositoris que siguin accessibles per a tots els usuaris en la vostra instància de Gitea.",
     },
   },
   chat_window: {
@@ -1476,6 +1560,19 @@ const TRANSLATIONS = {
     stt_transcription_failed: "No s'ha pogut transmetre: {{error}}",
     export: "Exporta la conversa com a...",
     exporting: "Exportant…",
+    preset_img_description: "Generar una imatge a partir d'un text",
+    generating_response: "Generar resposta",
+    response_failed: "No he pogut respondre al missatge.",
+    response_failed_reason: "Motiu: {{reason}}",
+    thought_in_progress: "L'entrenament continua...",
+    thoughts: "Pensaments",
+    leave_generating: {
+      title: "Deu deixar de generar respostes?",
+      description:
+        "Estàs a punt de tancar aquesta conversa; això farà que el model deixi d'elaborar la resposta i no es podrà recuperar.",
+      cancel: "Cancelar",
+      confirm: "Segueix",
+    },
   },
   profile_settings: {
     edit_account: "Edita el compte",
@@ -1942,6 +2039,24 @@ const TRANSLATIONS = {
       "routed-to": "Enviat a <route>{{model}}</route>",
       "routed-to-rule":
         "Enviat a través de <route>{{model}}</route> a través de <rule>{{ruleTitle}}</rule>",
+    },
+  },
+  imageGeneration: {
+    title: "Preferència per la generació d'imatges",
+    description:
+      "Configura el proveïdor que s'utilitza per generar imatges a partir del comandament `/img`.",
+    provider: "Proveïdor de generació d'imatges",
+    card: {
+      "failed-to-load": "No s'ha pogut carregar la imatge.",
+      "alt-text": "Imatge generada",
+      edit: "Editar",
+      download: "Descarregar",
+    },
+    pending: {
+      heading: "Generant la vostra imatge…",
+      description:
+        "Aquest procés pot prendre un temps. Apareixerà aquí tan aviat com estigui disponible.",
+      aborted: "La generació d'imatges va ser interrompuda.",
     },
   },
 };

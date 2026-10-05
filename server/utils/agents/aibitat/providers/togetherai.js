@@ -2,8 +2,14 @@ const OpenAI = require("openai");
 const Provider = require("./ai-provider.js");
 const InheritMultiple = require("./helpers/classes.js");
 const UnTooled = require("./helpers/untooled.js");
-const { tooledStream, tooledComplete } = require("./helpers/tooled.js");
+const {
+  tooledStream,
+  tooledComplete,
+  temperatureParam,
+  maxTokensParam,
+} = require("./helpers/tooled.js");
 const { RetryError } = require("../error.js");
+const { toValidNumber } = require("../../../http");
 
 /**
  * The agent provider for the TogetherAI provider.
@@ -23,6 +29,7 @@ class TogetherAIProvider extends InheritMultiple([Provider, UnTooled]) {
     this._client = client;
     this.model = model;
     this.verbose = true;
+    this.maxTokens = toValidNumber(process.env.TOGETHER_AI_MAX_TOKENS, null);
   }
 
   get client() {
@@ -37,7 +44,9 @@ class TogetherAIProvider extends InheritMultiple([Provider, UnTooled]) {
     return await this.client.chat.completions
       .create({
         model: this.model,
+        ...temperatureParam(this.temperature),
         messages,
+        ...maxTokensParam(this.maxTokens),
       })
       .then((result) => {
         if (!result.hasOwnProperty("choices"))
@@ -54,13 +63,15 @@ class TogetherAIProvider extends InheritMultiple([Provider, UnTooled]) {
   async #handleFunctionCallStream({ messages = [] }) {
     return await this.client.chat.completions.create({
       model: this.model,
+      ...temperatureParam(this.temperature),
       stream: true,
       messages,
+      ...maxTokensParam(this.maxTokens),
     });
   }
 
   async stream(messages, functions = [], eventHandler = null) {
-    const useNative = functions.length > 0 && this.supportsNativeToolCalling();
+    const useNative = this.supportsNativeToolCalling();
 
     if (!useNative) {
       return await UnTooled.prototype.stream.call(
@@ -83,7 +94,7 @@ class TogetherAIProvider extends InheritMultiple([Provider, UnTooled]) {
         messages,
         functions,
         eventHandler,
-        { provider: this }
+        { provider: this, maxTokens: this.maxTokens }
       );
     } catch (error) {
       console.error(error.message, error);
@@ -100,7 +111,7 @@ class TogetherAIProvider extends InheritMultiple([Provider, UnTooled]) {
   }
 
   async complete(messages, functions = []) {
-    const useNative = functions.length > 0 && this.supportsNativeToolCalling();
+    const useNative = this.supportsNativeToolCalling();
 
     if (!useNative) {
       return await UnTooled.prototype.complete.call(
@@ -118,7 +129,7 @@ class TogetherAIProvider extends InheritMultiple([Provider, UnTooled]) {
         messages,
         functions,
         this.getCost.bind(this),
-        { provider: this }
+        { provider: this, maxTokens: this.maxTokens }
       );
 
       if (result.retryWithError) {

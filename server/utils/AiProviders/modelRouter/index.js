@@ -2,16 +2,21 @@ const { ModelRouterService } = require("../../router");
 const { getLLMProvider } = require("../../helpers");
 
 class AnythingLLMModelRouter {
-  constructor(workspace, embedder = null) {
+  /**
+   * @param {Object} workspace
+   * @param {Object|null} embedder
+   * @param {number|string|null} temperature - Per-request temperature override (defaults to the workspace setting)
+   */
+  constructor(workspace, embedder = null, temperature = null) {
     this.className = "AnythingLLMModelRouter";
     this.workspace = workspace;
     this.embedder = embedder;
+    this.temperature = temperature ?? workspace?.openAiTemp;
     this.routerService = ModelRouterService.getInstance();
     this.router = null;
     this.resolvedRoute = null;
     this._routeKey = null;
     this.delegateProvider = null;
-    this.defaultTemp = 0.7;
     this.routerService.log(
       `Initialized for workspace "${workspace?.name || workspace?.slug}"`
     );
@@ -100,10 +105,51 @@ class AnythingLLMModelRouter {
   }
 
   #finalize() {
-    this.delegateProvider = getLLMProvider({
-      provider: this.resolvedRoute.provider,
-      model: this.resolvedRoute.model,
-    });
+    this.delegateProvider = this._instrumentProvider(
+      getLLMProvider({
+        provider: this.resolvedRoute.provider,
+        model: this.resolvedRoute.model,
+        temperature: this.temperature,
+      })
+    );
+  }
+
+  /**
+   * Every chat flow ends inference through one of two methods on the connector -
+   * `handleStream` once the stream is drained, or `getChatCompletion` when it
+   * resolves. Wrapping them means the cooldown is measured from the end of the
+   * reply without any caller needing to know the router exists.
+   * @param {BaseLLMProvider} provider
+   * @returns {BaseLLMProvider} the same instance, with both methods wrapped
+   */
+  _instrumentProvider(provider) {
+    for (const method of ["getChatCompletion", "handleStream"]) {
+      if (typeof provider?.[method] !== "function") continue;
+      const original = provider[method].bind(provider);
+      provider[method] = async (...args) => {
+        try {
+          return await original(...args);
+        } finally {
+          this.onInferenceComplete();
+        }
+      };
+    }
+    return provider;
+  }
+
+  /**
+   * Re-stamp the sticky route when inference stops so the cooldown window is
+   * measured from the end of the response, not from rule detection. Without
+   * this a long reply eats its own cooldown and the next message can reroute.
+   *
+   * Chat flows get this automatically via the wrapped delegate provider (see
+   * `#finalize`). Agent flows call it from the `model-router-cooldown` plugin,
+   * since aibitat instantiates its own providers from the resolved route.
+   */
+  onInferenceComplete() {
+    if (!this._routeKey || !this.resolvedRoute || this.resolvedRoute.isFallback)
+      return;
+    this.routerService.setStickyRoute(this._routeKey, this.resolvedRoute);
   }
 
   get routingMetadata() {

@@ -54,6 +54,7 @@ const TRANSLATIONS = {
     "workspaces-name": "Tên không gian làm việc",
     selection: "Lựa chọn mô hình",
     saving: "Đang lưu...",
+    saved: "Đã lưu",
     save: "Lưu thay đổi",
     previous: "Trang trước",
     next: "Trang tiếp theo",
@@ -68,6 +69,7 @@ const TRANSLATIONS = {
     stopped: "Dừng",
     loading: "Đang tải",
     refresh: "Tái tạo",
+    noResults: "Không tìm thấy kết quả",
   },
   settings: {
     title: "Cài đặt hệ thống",
@@ -111,6 +113,7 @@ const TRANSLATIONS = {
     },
     "scheduled-jobs": "Công việc theo lịch trình",
     "model-router": "Router mẫu",
+    "image-generation": "Tạo ảnh",
   },
   login: {
     "multi-user": {
@@ -237,6 +240,22 @@ const TRANSLATIONS = {
       title: "Nhiệt độ LLM",
       "desc-end":
         "Số càng cao thì càng sáng tạo. Đối với một số mô hình, điều này có thể dẫn đến phản hồi không mạch lạc khi đặt quá cao.",
+      placeholder: "Mặc định của nhà cung cấp",
+    },
+    reasoning_effort: {
+      title: "Mức độ suy luận",
+      default: "Mặc định của nhà cung cấp",
+      cannot_disable: "Mô hình này không thể tắt suy luận.",
+      levels: {
+        off: "Tắt",
+        on: "Bật",
+        minimal: "Tối thiểu",
+        low: "Thấp",
+        medium: "Trung bình",
+        high: "Cao",
+        xhigh: "Rất cao",
+        max: "Tối đa",
+      },
     },
   },
   "vector-workspace": {
@@ -315,8 +334,6 @@ const TRANSLATIONS = {
         description:
           "Cho phép đại lý của bạn sử dụng SQL để trả lời các câu hỏi của bạn bằng cách kết nối với nhiều nhà cung cấp cơ sở dữ liệu SQL khác nhau.",
       },
-      default_skill:
-        "Theo mặc định, kỹ năng này được kích hoạt, nhưng bạn có thể tắt nó nếu không muốn nó được sử dụng bởi người đại diện.",
       filesystem: {
         title: "Quyền truy cập hệ thống tệp",
         description:
@@ -715,6 +732,11 @@ const TRANSLATIONS = {
         description:
           'Cho phép đại lý tạo các công việc lặp lại theo lịch trình từ cuộc trò chuyện (ví dụ: "mỗi ngày làm việc lúc 9 giờ sáng, tóm tắt hộp thư và gửi email cho tôi"). Chỉ khả dụng trong chế độ sử dụng riêng.',
       },
+      generateImage: {
+        title: "Tạo hình ảnh",
+        description:
+          "Cho phép đại lý tạo ảnh từ cuộc trò chuyện hoặc chỉnh sửa ảnh đính kèm trong cuộc trò chuyện bằng cách sử dụng nhà cung cấp dịch vụ tạo ảnh đã được cấu hình.",
+      },
     },
     mcp: {
       title: "Máy chủ MCP",
@@ -1070,6 +1092,8 @@ const TRANSLATIONS = {
       save_embed: "Lưu và Nhúng",
       "total-documents_one": "{{count}}",
       "total-documents_other": "{{count}}",
+      "search-results_one": "Kết quả {{count}}",
+      "search-results_other": "Kết quả {{count}}",
     },
     upload: {
       "processor-offline": "Trình xử lý Tài liệu Không khả dụng",
@@ -1118,6 +1142,32 @@ const TRANSLATIONS = {
         "Điều này có thể mất một lúc tùy thuộc vào kích thước kho của bạn.",
       vault_warning:
         "Để tránh xung đột, hãy đảm bảo kho Obsidian của bạn hiện không mở.",
+    },
+    gitea: {
+      name: "Kho lưu trữ Gitea",
+      description:
+        "Nhập toàn bộ kho lưu trữ công cộng hoặc riêng tư từ bất kỳ phiên bản Gitea nào chỉ bằng một cú nhấp chuột.",
+      URL: "URL kho lưu trữ Gitea",
+      URL_explained:
+        "Địa chỉ URL của kho lưu trữ mà bạn muốn sao chép trên phiên bản Gitea của mình – các phiên bản tự lưu trữ đều được hỗ trợ.",
+      token: "Mật khẩu truy cập Gitea",
+      optional: "tùy chọn",
+      token_explained:
+        "Mã truy cập cần thiết để thu thập các kho lưu trữ riêng tư hoặc các kho lưu trữ trên các máy chủ yêu cầu xác thực.",
+      token_explained_start: "Không có",
+      token_explained_link1: "Mã truy cập",
+      token_explained_end:
+        "Chỉ các kho lưu trữ mà phiên bản Gitea của bạn hiển thị công khai mới có thể được thu thập.",
+      ignores: "Tệp bỏ qua",
+      git_ignore:
+        "Liệt kê định dạng .gitignore để bỏ qua các tệp cụ thể trong quá trình thu thập. Nhấn Enter sau mỗi mục bạn muốn lưu.",
+      task_explained:
+        "Sau khi hoàn thành, tất cả các tệp sẽ có sẵn để gắn vào không gian làm việc trong trình chọn tài liệu.",
+      branch: "Kho lưu trữ mà bạn muốn truy cập.",
+      branch_loading: "– Hiển thị các chi nhánh hiện có –",
+      branch_explained: "Cơ sở bạn muốn tải xuống các tệp tin.",
+      token_information:
+        "Nếu không điền thông tin <b>Token truy cập Gitea</b>, kết nối dữ liệu này chỉ có thể thu thập các tệp từ các kho lưu trữ được <b>truy cập công khai</b> trên phiên bản Gitea của bạn.",
     },
   },
   chat_window: {
@@ -1260,6 +1310,19 @@ const TRANSLATIONS = {
     stt_transcription_failed: "Không thể chuyển đổi: {{error}}",
     export: "Xuất trò chuyện dưới dạng...",
     exporting: "Xuất khẩu...",
+    preset_img_description: "Tạo một hình ảnh từ một đoạn mô tả bằng văn bản.",
+    generating_response: "Tạo ra câu trả lời",
+    response_failed: "Không thể phản hồi tin nhắn.",
+    response_failed_reason: "Lý do: {{reason}}",
+    thought_in_progress: "Đang suy nghĩ...",
+    thoughts: "Ý tưởng",
+    leave_generating: {
+      title: "Dừng tạo phản hồi?",
+      description:
+        "Bạn sắp rời khỏi cuộc trò chuyện này, điều này sẽ ngăn mô hình tạo ra câu trả lời và không thể khôi phục lại.",
+      cancel: "Hủy",
+      confirm: "Tiếp tục",
+    },
   },
   profile_settings: {
     edit_account: "Chỉnh sửa Tài khoản",
@@ -1367,6 +1430,11 @@ const TRANSLATIONS = {
         description:
           "Hiển thị phản hồi HTML trong các phản hồi của trợ lý.\nĐiều này có thể mang lại chất lượng phản hồi cao hơn nhiều, nhưng cũng có thể dẫn đến các rủi ro bảo mật tiềm ẩn.",
       },
+      "disable-auto-scroll": {
+        title: "Tắt tính năng cuộn tự động",
+        description:
+          "Tắt tính năng tự động cuộn xuống cuối cuộc trò chuyện khi nhận được tin nhắn mới.",
+      },
     },
   },
   "main-page": {
@@ -1376,6 +1444,35 @@ const TRANSLATIONS = {
       uploadDocument: "Tải lên một tài liệu",
     },
     greeting: "Hôm nay tôi có thể giúp gì cho bạn?",
+    greetings: {
+      anytime: {
+        working_on: "Chúng ta đang làm gì nhỉ?",
+        on_your_mind: "Bạn đang nghĩ gì?",
+        where_to_start: "Chúng ta nên bắt đầu từ đâu?",
+        ready: "Sẵn sàng khi bạn cần.",
+        think_it_through: "Hãy cùng suy nghĩ kỹ nhé.",
+      },
+      morning: {
+        good_morning: "Chào buổi sáng",
+        first_today: "Chào buổi sáng. Hôm nay làm gì trước?",
+        fresh_start: "Khởi đầu mới. Bắt đầu từ đâu đây?",
+      },
+      afternoon: {
+        good_afternoon: "Chào buổi chiều",
+        tackling: "Chào buổi chiều. Chúng ta xử lý việc gì?",
+        next_on_list: "Việc tiếp theo trong danh sách là gì?",
+        keep_moving: "Tiếp tục nào.",
+      },
+      evening: {
+        good_evening: "Chào buổi tối",
+        finish_strong: "Chào buổi tối. Cùng kết thúc thật tốt nhé.",
+      },
+      night: {
+        midnight_oil: "Làm việc đến khuya à?",
+        late_one: "Một đêm dài? Hãy cùng suy nghĩ kỹ nhé.",
+        still_up: "Vẫn còn thức à? Sẵn sàng khi bạn cần.",
+      },
+    },
   },
   "keyboard-shortcuts": {
     title: "Phím tắt",
@@ -1902,7 +1999,7 @@ const TRANSLATIONS = {
         "Chọn router nào để sử dụng cho không gian làm việc này.",
       "no-routers-chat":
         "Không có bộ định tuyến nào được cấu hình. Tạo một bộ định tuyến trong mục Cài đặt > Nhà cung cấp AI > Bộ định tuyến Mô hình.",
-      "rule-count": "(__Quy tắc {{count}})",
+      "rule-count": "({{count}} quy tắc)",
     },
     metrics: {
       "model-router-default": "Mẫu Router",
@@ -1913,6 +2010,24 @@ const TRANSLATIONS = {
       "routed-to": "Được chuyển đến <route>{{model}}</route>",
       "routed-to-rule":
         "Được chuyển đến <route>{{model}}</route> thông qua <rule>{{ruleTitle}}</rule>",
+    },
+  },
+  imageGeneration: {
+    title: "Ưu tiên tạo ảnh",
+    description:
+      "Cấu hình nhà cung cấp được sử dụng để tạo ảnh từ lệnh `/img`.",
+    provider: "Nhà cung cấp dịch vụ tạo hình ảnh",
+    card: {
+      "failed-to-load": "Không thể tải hình ảnh.",
+      "alt-text": "Hình ảnh được tạo ra",
+      edit: "Chỉnh sửa",
+      download: "Tải xuống",
+    },
+    pending: {
+      heading: "Tạo ảnh cho bạn…",
+      description:
+        "Quá trình này có thể mất một khoảng thời gian. Nội dung sẽ hiển thị ngay khi hoàn thành.",
+      aborted: "Việc tạo hình ảnh đã bị hủy bỏ.",
     },
   },
 };

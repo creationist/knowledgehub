@@ -53,6 +53,7 @@ const TRANSLATIONS = {
     "workspaces-name": "Nom des espaces de travail",
     selection: "Sélection du modèle",
     saving: "Enregistrement...",
+    saved: "Enregistré",
     save: "Enregistrer les modifications",
     previous: "Page précédente",
     next: "Page suivante",
@@ -67,6 +68,7 @@ const TRANSLATIONS = {
     stopped: "Arrêté",
     loading: "Chargement",
     refresh: "Rafraîchir",
+    noResults: "Aucun résultat trouvé",
   },
   settings: {
     title: "Paramètres de l'instance",
@@ -110,6 +112,7 @@ const TRANSLATIONS = {
     },
     "scheduled-jobs": "Tâches planifiées",
     "model-router": "Routeur modèle",
+    "image-generation": "Génération d'images",
   },
   login: {
     "multi-user": {
@@ -237,6 +240,22 @@ const TRANSLATIONS = {
       title: "Température LLM",
       "desc-end":
         "Plus le nombre est élevé, plus la réponse sera créative. Pour certains modèles, cela peut entraîner des réponses incohérentes si la valeur est trop élevée.",
+      placeholder: "Valeur par défaut du fournisseur",
+    },
+    reasoning_effort: {
+      title: "Effort de raisonnement",
+      default: "Valeur par défaut du fournisseur",
+      cannot_disable: "Ce modèle ne peut pas désactiver le raisonnement.",
+      levels: {
+        off: "Désactivé",
+        on: "Activé",
+        minimal: "Minimal",
+        low: "Faible",
+        medium: "Moyen",
+        high: "Élevé",
+        xhigh: "Très élevé",
+        max: "Maximal",
+      },
     },
   },
   "vector-workspace": {
@@ -317,8 +336,6 @@ const TRANSLATIONS = {
         description:
           "Permettez à votre agent d'utiliser SQL pour répondre à vos questions en lui fournissant un accès à divers fournisseurs de bases de données SQL.",
       },
-      default_skill:
-        "Par défaut, cette fonctionnalité est activée, mais vous pouvez la désactiver si vous ne souhaitez pas qu'elle soit disponible pour l'agent.",
       filesystem: {
         title: "Accès au système de fichiers",
         description:
@@ -736,6 +753,11 @@ const TRANSLATIONS = {
         description:
           "Permettez à l'agent de créer des tâches planifiées récurrentes à partir des conversations (par exemple : « tous les jours ouvrables à 9h, résumez ma boîte de réception et envoyez-moi un e-mail »). Fonctionnalité disponible uniquement en mode utilisateur unique.",
       },
+      generateImage: {
+        title: "Générer des images",
+        description:
+          "Permettez à l'agent de générer des images à partir du contenu de la conversation, ou d'éditer les images jointes à la conversation, en utilisant le fournisseur de génération d'images que vous avez configuré.",
+      },
     },
     mcp: {
       title: "Serveurs MCP",
@@ -1094,6 +1116,8 @@ const TRANSLATIONS = {
       save_embed: "Sauvegarder et intégrer",
       "total-documents_one": "{{count}}",
       "total-documents_other": "{{count}} documents",
+      "search-results_one": "{{count}} résultat",
+      "search-results_other": "{{count}} résultats",
     },
     upload: {
       "processor-offline": "Processeur de documents hors ligne",
@@ -1142,6 +1166,34 @@ const TRANSLATIONS = {
         "Le traitement peut prendre quelques minutes selon la taille du coffre.",
       vault_warning:
         "Assurez-vous de sélectionner le dossier racine contenant le dossier .obsidian.",
+    },
+    gitea: {
+      name: "Dépôt Git",
+      description:
+        "Importer un référentiel public ou privé entier depuis n'importe quelle instance Gitea en un seul clic.",
+      URL: "URL du dépôt Gitea",
+      URL_explained:
+        "URL du dépôt que vous souhaitez récupérer sur votre instance Gitea – les instances auto-hébergées sont prises en charge.",
+      token: "Token d'accès Gitea",
+      optional: "facultatif",
+      token_explained:
+        "Un jeton d'accès est nécessaire pour récupérer les dépôts privés ou les dépôts situés sur des instances qui nécessitent une authentification.",
+      token_explained_start: "Sans",
+      token_explained_link1: "Jeton d'accès",
+      token_explained_end:
+        "Seules les dépôts que votre instance Gitea expose publiquement peuvent être récupérés.",
+      ignores: "Le fichier est ignoré",
+      git_ignore:
+        'Créez un fichier au format ".gitignore" pour ignorer des fichiers spécifiques lors de la collecte. Appuyez sur Entrée après chaque entrée que vous souhaitez enregistrer.',
+      task_explained:
+        "Une fois terminés, tous les fichiers seront disponibles pour être intégrés dans des espaces de travail via le sélecteur de documents.",
+      branch:
+        "Branche à partir de laquelle vous souhaitez récupérer les fichiers.",
+      branch_loading: "– Chargement des branches disponibles –",
+      branch_explained:
+        "Branche à partir de laquelle vous souhaitez récupérer les fichiers.",
+      token_information:
+        "Sans saisir le jeton d'accès <b>Gitea</b>, ce connecteur de données ne pourra collecter que les fichiers provenant de dépôts accessibles publiquement sur votre instance Gitea.",
     },
   },
   chat_window: {
@@ -1289,6 +1341,20 @@ const TRANSLATIONS = {
     stt_transcription_failed: "La transcription a échoué : {{error}}",
     export: "Exporter la conversation au format...",
     exporting: "Exportation...",
+    preset_img_description:
+      "Générer une image à partir d'une requête textuelle.",
+    generating_response: "Générer une réponse",
+    response_failed: "Impossible de répondre au message.",
+    response_failed_reason: "Raison : {{reason}}",
+    thought_in_progress: "Le modèle réfléchit…",
+    thoughts: "Réflexions",
+    leave_generating: {
+      title: "Arrêter de générer une réponse ?",
+      description:
+        "Vous allez bientôt quitter cette conversation. Cela empêchera le modèle de générer une réponse et il ne sera plus possible de récupérer la conversation.",
+      cancel: "Annuler",
+      confirm: "Continuer",
+    },
   },
   profile_settings: {
     edit_account: "Modifier le compte",
@@ -1394,6 +1460,11 @@ const TRANSLATIONS = {
         description:
           "Autorise le rendu du contenu HTML dans les réponses du chat.",
       },
+      "disable-auto-scroll": {
+        title: "Désactiver le défilement automatique",
+        description:
+          "Désactiver le défilement automatique vers la fin de la conversation lorsqu'un nouveau message est reçu.",
+      },
     },
   },
   "main-page": {
@@ -1403,6 +1474,35 @@ const TRANSLATIONS = {
       uploadDocument: "Télécharger un document",
     },
     greeting: "Comment puis-je vous aider aujourd'hui ?",
+    greetings: {
+      anytime: {
+        working_on: "Sur quoi travaillons-nous ?",
+        on_your_mind: "Qu'avez-vous en tête ?",
+        where_to_start: "Par où commençons-nous ?",
+        ready: "Prêt quand vous l'êtes.",
+        think_it_through: "Prenons le temps d'y réfléchir.",
+      },
+      morning: {
+        good_morning: "Bonjour",
+        first_today: "Bonjour. Par quoi commence-t-on aujourd'hui ?",
+        fresh_start: "Nouveau départ. Par où commencer ?",
+      },
+      afternoon: {
+        good_afternoon: "Bon après-midi",
+        tackling: "Bon après-midi. À quoi s'attaque-t-on ?",
+        next_on_list: "Quelle est la suite de la liste ?",
+        keep_moving: "Gardons le rythme.",
+      },
+      evening: {
+        good_evening: "Bonsoir",
+        finish_strong: "Bonsoir. Finissons en beauté.",
+      },
+      night: {
+        midnight_oil: "Vous travaillez tard ?",
+        late_one: "Longue soirée ? Prenons le temps d'y réfléchir.",
+        still_up: "Encore debout ? Prêt quand vous l'êtes.",
+      },
+    },
   },
   "keyboard-shortcuts": {
     title: "Raccourcis clavier",
@@ -1939,6 +2039,24 @@ const TRANSLATIONS = {
       "routed-to": "Dirigé vers <route>{{model}}</route>",
       "routed-to-rule":
         "Dirigé vers <route>{{model}}</route> via <rule>{{ruleTitle}}</rule>",
+    },
+  },
+  imageGeneration: {
+    title: "Préférences de génération d'images",
+    description:
+      "Configurer le fournisseur utilisé pour générer des images à partir de la commande `/img`.",
+    provider: "Fournisseur de génération d'images",
+    card: {
+      "failed-to-load": "L'image n'a pas pu être chargée.",
+      "alt-text": "Image générée",
+      edit: "Modifier",
+      download: "Télécharger",
+    },
+    pending: {
+      heading: "Génération de votre image…",
+      description:
+        "Cela peut prendre un certain temps. Il apparaîtra ici dès qu'il sera prêt.",
+      aborted: "La génération d'images a été interrompue.",
     },
   },
 };

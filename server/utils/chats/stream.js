@@ -3,7 +3,9 @@ const { DocumentManager } = require("../DocumentManager");
 const { WorkspaceChats } = require("../../models/workspaceChats");
 const { WorkspaceParsedFiles } = require("../../models/workspaceParsedFiles");
 const { getVectorDbClass, resolveProviderConnector } = require("../helpers");
+const { addChatCostToMetrics } = require("../helpers/modelPricing");
 const { writeResponseChunk } = require("../helpers/chat/responses");
+const { abortConnectorOnClientDisconnect } = require("../helpers/abortSignals");
 const { grepAgents } = require("./agents");
 const {
   grepCommand,
@@ -12,6 +14,10 @@ const {
   recentChatHistory,
   sourceIdentifier,
 } = require("./index");
+const {
+  resolveReasoningEffort,
+  usesModelRouter,
+} = require("../helpers/reasoningEffort");
 
 const VALID_CHAT_MODE = ["automatic", "chat", "query"];
 
@@ -22,9 +28,13 @@ async function streamChatWithWorkspace(
   chatMode = "automatic",
   user = null,
   thread = null,
-  attachments = []
+  attachments = [],
+  sessionReasoningEffort = null
 ) {
   const uuid = uuidv4();
+  // Routed workspaces show no reasoning controls, so a stored effort is
+  // never applied to whichever model the router picks.
+  if (usesModelRouter(workspace)) sessionReasoningEffort = null;
   const updatedMessage = await grepCommand(message, user);
 
   if (Object.keys(VALID_COMMANDS).includes(updatedMessage)) {
@@ -33,7 +43,9 @@ async function streamChatWithWorkspace(
       message,
       uuid,
       user,
-      thread
+      thread,
+      response,
+      attachments
     );
     writeResponseChunk(response, data);
     return;
@@ -48,6 +60,7 @@ async function streamChatWithWorkspace(
     workspace,
     thread,
     attachments,
+    reasoningEffort: sessionReasoningEffort,
   });
   if (isAgentChat) return;
 
@@ -74,6 +87,10 @@ async function streamChatWithWorkspace(
       error: routerError,
     });
   }
+
+  // Stopping the generation (or closing the tab) should stop the provider
+  // generating too, not just stop us reading the response.
+  abortConnectorOnClientDisconnect(response, LLMConnector);
 
   if (routingMetadata?.routedTo?.shouldNotify) {
     writeResponseChunk(response, {
@@ -273,6 +290,11 @@ async function streamChatWithWorkspace(
     rawHistory
   );
 
+  const reasoningEffort = await resolveReasoningEffort(
+    LLMConnector,
+    sessionReasoningEffort
+  );
+
   // If streaming is not explicitly enabled for connector
   // we do regular waiting of a response and send a single chunk.
   if (LLMConnector.streamingEnabled() !== true) {
@@ -281,12 +303,16 @@ async function streamChatWithWorkspace(
     );
     const { textResponse, metrics: performanceMetrics } =
       await LLMConnector.getChatCompletion(messages, {
-        temperature: workspace?.openAiTemp ?? LLMConnector.defaultTemp,
         user: user,
+        reasoningEffort,
       });
 
     completeText = textResponse;
-    metrics = performanceMetrics;
+    metrics = addChatCostToMetrics(performanceMetrics, {
+      routingMetadata,
+      workspace,
+      connector: LLMConnector,
+    });
     writeResponseChunk(response, {
       uuid,
       sources,
@@ -298,14 +324,18 @@ async function streamChatWithWorkspace(
     });
   } else {
     const stream = await LLMConnector.streamGetChatCompletion(messages, {
-      temperature: workspace?.openAiTemp ?? LLMConnector.defaultTemp,
       user: user,
+      reasoningEffort,
     });
     completeText = await LLMConnector.handleStream(response, stream, {
       uuid,
       sources,
     });
-    metrics = stream.metrics;
+    metrics = addChatCostToMetrics(stream.metrics, {
+      routingMetadata,
+      workspace,
+      connector: LLMConnector,
+    });
   }
 
   if (completeText?.length > 0) {

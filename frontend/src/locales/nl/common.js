@@ -54,6 +54,7 @@ const TRANSLATIONS = {
     "workspaces-name": "Werkruimten Naam",
     selection: "Model Selectie",
     saving: "Opslaan...",
+    saved: "Opgeslagen",
     save: "Wijzigingen opslaan",
     previous: "Vorige pagina",
     next: "Volgende pagina",
@@ -68,6 +69,7 @@ const TRANSLATIONS = {
     stopped: "Gestopt",
     loading: "Laad",
     refresh: "Verfrissen",
+    noResults: "Geen resultaten gevonden",
   },
   settings: {
     title: "Instelling Instanties",
@@ -111,6 +113,7 @@ const TRANSLATIONS = {
     },
     "scheduled-jobs": "Geplande taken",
     "model-router": "Modelrouter",
+    "image-generation": "Afbeelding genereren",
   },
   login: {
     "multi-user": {
@@ -238,6 +241,22 @@ const TRANSLATIONS = {
       title: "LLM Temperatuur",
       "desc-end":
         "Hoe hoger het getal, hoe creatiever. Voor sommige modellen kan dit leiden tot onsamenhangende antwoorden als het te hoog wordt ingesteld.",
+      placeholder: "Standaard van de provider",
+    },
+    reasoning_effort: {
+      title: "Redeneerinspanning",
+      default: "Standaard van de provider",
+      cannot_disable: "Dit model kan redeneren niet uitschakelen.",
+      levels: {
+        off: "Uit",
+        on: "Aan",
+        minimal: "Minimaal",
+        low: "Laag",
+        medium: "Gemiddeld",
+        high: "Hoog",
+        xhigh: "Extra hoog",
+        max: "Maximaal",
+      },
     },
   },
   "vector-workspace": {
@@ -316,8 +335,6 @@ const TRANSLATIONS = {
         description:
           "Maak het mogelijk voor uw agent om SQL te gebruiken om uw vragen te beantwoorden, door verbinding te maken met verschillende SQL-databaseproviders.",
       },
-      default_skill:
-        "Standaard is deze functie ingeschakeld, maar u kunt deze uitschakelen als u niet wilt dat de agent er gebruik van kan maken.",
       filesystem: {
         title: "Toegang tot het bestandssysteem",
         description:
@@ -721,6 +738,11 @@ const TRANSLATIONS = {
         description:
           'Laat de agent herhaalde geplande taken aanmaken vanuit het gesprek (bijvoorbeeld: "elke werkdag om 9 uur, vat mijn inbox samen en stuur me een e-mail"). Dit is alleen beschikbaar in single-user modus.',
       },
+      generateImage: {
+        title: "Afbeeldingen genereren",
+        description:
+          "Laat de agent afbeeldingen genereren op basis van de chat, of bestaande afbeeldingen in het gesprek bewerken, met behulp van uw geconfigureerde dienst voor het genereren van afbeeldingen.",
+      },
     },
     mcp: {
       title: "MCP-servers",
@@ -1080,6 +1102,8 @@ const TRANSLATIONS = {
       save_embed: "Opslaan en embedden",
       "total-documents_one": "{{count}} document",
       "total-documents_other": "{{count}} documenten",
+      "search-results_one": "{{count}} uitkomst",
+      "search-results_other": "{{count}} resultaten",
     },
     upload: {
       "processor-offline": "Documentverwerker niet beschikbaar",
@@ -1128,6 +1152,33 @@ const TRANSLATIONS = {
         "Dit kan even duren, afhankelijk van de grootte van uw kluis.",
       vault_warning:
         "Zorg ervoor dat uw Obsidian-kluis niet geopend is om conflicten te voorkomen.",
+    },
+    gitea: {
+      name: "Repo van Gitea",
+      description:
+        "Importeer een volledig publiek of privé-repository van elke Gitea-instantie met één klik.",
+      URL: "URL van de Gitea repository",
+      URL_explained:
+        "URL van het repository dat u wilt ophalen in uw Gitea-instantie – zelf gehoste instanties worden ondersteund.",
+      token: "Gitea toegangstoken",
+      optional: "optioneel",
+      token_explained:
+        "Een toegangstoken is vereist om privé-repositories of repositories op instanties te verzamelen die authenticatie vereisen.",
+      token_explained_start: "Zonder",
+      token_explained_link1: "Toegangstoken",
+      token_explained_end:
+        "Alleen repositories die door uw Gitea-instantie openbaar toegankelijk zijn, kunnen worden verzameld.",
+      ignores: "Bestand negeert",
+      git_ignore:
+        "Maak een bestand met de naam `.gitignore` waarin je specifieke bestanden kunt opsluiten tijdens het verzamelen. Druk na elke vermelding die je wilt opslaan op Enter.",
+      task_explained:
+        "Zodra het proces voltooid is, zullen alle bestanden beschikbaar zijn om in te voegen in werkruimtes via de documentkiezer.",
+      branch: "De tak waaruit u de bestanden wilt ophalen.",
+      branch_loading: "– beschikbare takken laden –",
+      branch_explained:
+        "De tak (of afdeling) waaruit u de bestanden wilt downloaden.",
+      token_information:
+        "Zonder het invullen van de <b>Gitea Access Token</b> kan deze dataconnecteur alleen bestanden ophalen uit repositories die <b>openbaar toegankelijk</b> zijn op uw Gitea-instantie.",
     },
   },
   chat_window: {
@@ -1273,6 +1324,20 @@ const TRANSLATIONS = {
     stt_transcription_failed: "Transcriptie mislukt: {{error}}",
     export: "Exporteer de chat als…",
     exporting: "Exporteren...",
+    preset_img_description:
+      "Genereer een afbeelding op basis van een tekstuele instructie.",
+    generating_response: "Antwoord genereren",
+    response_failed: "Kon de bericht niet beantwoorden.",
+    response_failed_reason: "Reden: {{reason}}",
+    thought_in_progress: "Het model denkt...",
+    thoughts: "Denken",
+    leave_generating: {
+      title: "Stoppen met het genereren van een antwoord?",
+      description:
+        "U gaat nu deze chat afsluiten. Dit zorgt ervoor dat het model geen antwoord meer genereert en dit kan niet worden teruggedraaid.",
+      cancel: "Annuleren",
+      confirm: "Vervolg",
+    },
   },
   profile_settings: {
     edit_account: "Account bewerken",
@@ -1381,6 +1446,11 @@ const TRANSLATIONS = {
         description:
           "HTML-reacties weergeven in assistentreacties.\nLet op: Dit kan resulteren in een veel hogere kwaliteit van de reacties, maar kan ook leiden tot potentiële beveiligingsrisico's.",
       },
+      "disable-auto-scroll": {
+        title: "Schakel automatische scrollfunctie uit",
+        description:
+          "Schakel het automatische scrollen naar het einde van de chat uit wanneer er nieuwe berichten worden ontvangen.",
+      },
     },
   },
   "main-page": {
@@ -1390,6 +1460,35 @@ const TRANSLATIONS = {
       uploadDocument: "Upload een document",
     },
     greeting: "Hoe kan ik u vandaag helpen?",
+    greetings: {
+      anytime: {
+        working_on: "Waar werken we aan?",
+        on_your_mind: "Waar denkt u aan?",
+        where_to_start: "Waar beginnen we?",
+        ready: "Klaar wanneer u dat bent.",
+        think_it_through: "Laten we het goed doordenken.",
+      },
+      morning: {
+        good_morning: "Goedemorgen",
+        first_today: "Goedemorgen. Waar beginnen we vandaag mee?",
+        fresh_start: "Een frisse start. Waar beginnen we?",
+      },
+      afternoon: {
+        good_afternoon: "Goedemiddag",
+        tackling: "Goedemiddag. Wat pakken we aan?",
+        next_on_list: "Wat staat er nu op de lijst?",
+        keep_moving: "Laten we doorpakken.",
+      },
+      evening: {
+        good_evening: "Goedenavond",
+        finish_strong: "Goedenavond. Laten we sterk afsluiten.",
+      },
+      night: {
+        midnight_oil: "Tot laat aan het werk?",
+        late_one: "Lange avond? Laten we het goed doordenken.",
+        still_up: "Nog wakker? Klaar wanneer u dat bent.",
+      },
+    },
   },
   "keyboard-shortcuts": {
     title: "Sneltoetsen",
@@ -1935,6 +2034,24 @@ const TRANSLATIONS = {
       "routed-to": "Verwezen naar <route>{{model}}</route>",
       "routed-to-rule":
         "Verzonden via <route>{{model}}</route> via <rule>{{ruleTitle}}</rule>",
+    },
+  },
+  imageGeneration: {
+    title: "Voorkeur voor het genereren van afbeeldingen",
+    description:
+      "Configureer de provider die gebruikt wordt om afbeeldingen te genereren vanuit het `/img` commando.",
+    provider: "Aanbieder van beeldgeneratie-diensten",
+    card: {
+      "failed-to-load": "Afbeelding kon niet worden geladen.",
+      "alt-text": "Gegenereerde afbeelding",
+      edit: "Bewerk",
+      download: "Downloaden",
+    },
+    pending: {
+      heading: "Het genereren van uw afbeelding…",
+      description:
+        "Dit kan even duren. Het zal hier verschijnen zodra het klaar is.",
+      aborted: "Het genereren van het beeld is afgebroken.",
     },
   },
 };

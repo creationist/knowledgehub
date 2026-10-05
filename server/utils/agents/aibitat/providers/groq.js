@@ -2,7 +2,11 @@ const OpenAI = require("openai");
 const Provider = require("./ai-provider.js");
 const InheritMultiple = require("./helpers/classes.js");
 const UnTooled = require("./helpers/untooled.js");
-const { tooledStream, tooledComplete } = require("./helpers/tooled.js");
+const {
+  tooledStream,
+  tooledComplete,
+  temperatureParam,
+} = require("./helpers/tooled.js");
 const { RetryError } = require("../error.js");
 
 /**
@@ -40,6 +44,7 @@ class GroqProvider extends InheritMultiple([Provider, UnTooled]) {
     return await this.client.chat.completions
       .create({
         model: this.model,
+        ...temperatureParam(this.temperature),
         messages,
       })
       .then((result) => {
@@ -57,6 +62,7 @@ class GroqProvider extends InheritMultiple([Provider, UnTooled]) {
   async #handleFunctionCallStream({ messages = [] }) {
     return await this.client.chat.completions.create({
       model: this.model,
+      ...temperatureParam(this.temperature),
       stream: true,
       messages,
     });
@@ -67,8 +73,7 @@ class GroqProvider extends InheritMultiple([Provider, UnTooled]) {
    * Uses native tool calling when enabled via ENV, otherwise falls back to UnTooled.
    */
   async stream(messages, functions = [], eventHandler = null) {
-    const useNative =
-      functions.length > 0 && (await this.supportsNativeToolCalling());
+    const useNative = await this.supportsNativeToolCalling();
 
     if (!useNative) {
       return await UnTooled.prototype.stream.call(
@@ -112,8 +117,7 @@ class GroqProvider extends InheritMultiple([Provider, UnTooled]) {
    * Uses native tool calling when enabled via ENV, otherwise falls back to UnTooled.
    */
   async complete(messages, functions = []) {
-    const useNative =
-      functions.length > 0 && (await this.supportsNativeToolCalling());
+    const useNative = await this.supportsNativeToolCalling();
 
     if (!useNative) {
       return await UnTooled.prototype.complete.call(

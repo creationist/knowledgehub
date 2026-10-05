@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef, Fragment } from "react";
-import { getWorkspaceSystemPrompt } from "@/utils/chat";
 import { useTranslation } from "react-i18next";
 import SystemPromptVariable from "@/models/systemPromptVariable";
 import Highlighter from "react-highlight-words";
@@ -9,19 +8,16 @@ import ChatPromptHistory from "./ChatPromptHistory";
 import PublishEntityModal from "@/components/CommunityHub/PublishEntityModal";
 import { useModal } from "@/hooks/useModal";
 import System from "@/models/system";
+import { useAutosaveForm, SavedIndicator } from "@/components/AutosaveForm";
 
-export default function ChatPromptSettings({
-  workspace,
-  setHasChanges,
-  hasChanges,
-}) {
+export default function ChatPromptSettings({ workspace }) {
   const { t } = useTranslation();
+  const { markDirty, save, hasChanges } = useAutosaveForm();
   const [searchParams] = useSearchParams();
 
   // Prompt state
-  const initialPrompt = getWorkspaceSystemPrompt(workspace);
-  const [prompt, setPrompt] = useState(initialPrompt);
-  const [savedPrompt, setSavedPrompt] = useState(initialPrompt);
+  const [prompt, setPrompt] = useState(workspace?.openAiPrompt ?? "");
+  const [savedPrompt, setSavedPrompt] = useState(workspace?.openAiPrompt ?? "");
   const [defaultSystemPrompt, setDefaultSystemPrompt] = useState("");
 
   // UI state
@@ -43,7 +39,8 @@ export default function ChatPromptSettings({
 
   // Derived state
   const isDirty = prompt !== savedPrompt;
-  const hasBeenModified = savedPrompt?.trim() !== initialPrompt?.trim();
+  const hasBeenModified =
+    defaultSystemPrompt && savedPrompt?.trim() !== defaultSystemPrompt?.trim();
   const showPublishButton =
     !isEditing && prompt?.trim().length >= 10 && (isDirty || hasBeenModified);
 
@@ -71,9 +68,13 @@ export default function ChatPromptSettings({
   }, [isEditing]);
 
   useEffect(() => {
-    System.fetchDefaultSystemPrompt().then(({ defaultSystemPrompt }) =>
-      setDefaultSystemPrompt(defaultSystemPrompt)
-    );
+    System.fetchDefaultSystemPrompt().then(({ defaultSystemPrompt }) => {
+      setDefaultSystemPrompt(defaultSystemPrompt);
+      if (!workspace?.openAiPrompt && defaultSystemPrompt) {
+        setPrompt(defaultSystemPrompt);
+        setSavedPrompt(defaultSystemPrompt);
+      }
+    });
   }, []);
 
   // Handle click outside for history panel
@@ -95,7 +96,8 @@ export default function ChatPromptSettings({
   const handleRestoreFromHistory = (historicalPrompt) => {
     setPrompt(historicalPrompt);
     setShowPromptHistory(false);
-    setHasChanges(true);
+    markDirty("openAiPrompt");
+    save();
   };
 
   const handlePublishFromHistory = (historicalPrompt) => {
@@ -108,7 +110,8 @@ export default function ChatPromptSettings({
   const handleRestoreToDefaultSystemPrompt = () => {
     System.fetchDefaultSystemPrompt().then(({ defaultSystemPrompt }) => {
       setPrompt(defaultSystemPrompt);
-      setHasChanges(true);
+      markDirty("openAiPrompt");
+      save();
     });
   };
 
@@ -127,6 +130,7 @@ export default function ChatPromptSettings({
           <div className="flex items-center justify-between">
             <label htmlFor="name" className="block input-label">
               {t("chat.prompt.title")}
+              <SavedIndicator name="openAiPrompt" />
             </label>
           </div>
           <p className="text-white text-opacity-60 text-xs font-medium">
@@ -192,11 +196,11 @@ export default function ChatPromptSettings({
                 }}
                 onChange={(e) => {
                   setPrompt(e.target.value);
-                  setHasChanges(true);
+                  markDirty("openAiPrompt");
                 }}
                 onPaste={(e) => {
                   setPrompt(e.target.value);
-                  setHasChanges(true);
+                  markDirty("openAiPrompt");
                 }}
                 style={{
                   resize: "vertical",

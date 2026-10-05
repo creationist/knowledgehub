@@ -52,6 +52,7 @@ const TRANSLATIONS = {
     "workspaces-name": "워크스페이스 이름",
     selection: "모델 선택",
     saving: "저장 중...",
+    saved: "저장됨",
     save: "저장",
     previous: "이전",
     next: "다음",
@@ -66,6 +67,7 @@ const TRANSLATIONS = {
     stopped: "멈춤",
     loading: "로딩 중",
     refresh: "새롭게",
+    noResults: "결과가 없습니다",
   },
   settings: {
     title: "인스턴스 설정",
@@ -109,6 +111,7 @@ const TRANSLATIONS = {
     },
     "scheduled-jobs": "예정된 작업",
     "model-router": "모델 라우터",
+    "image-generation": "이미지 생성",
   },
   login: {
     "multi-user": {
@@ -135,6 +138,35 @@ const TRANSLATIONS = {
       uploadDocument: "문서 업로드",
     },
     greeting: "오늘 어떻게 도와드릴까요?",
+    greetings: {
+      anytime: {
+        working_on: "어떤 작업을 해볼까요?",
+        on_your_mind: "무슨 생각을 하고 계신가요?",
+        where_to_start: "어디서부터 시작할까요?",
+        ready: "준비되시면 말씀하세요.",
+        think_it_through: "차근차근 생각해 봐요.",
+      },
+      morning: {
+        good_morning: "좋은 아침이에요",
+        first_today: "좋은 아침이에요. 오늘은 무엇부터 할까요?",
+        fresh_start: "새로운 시작이에요. 무엇부터 해볼까요?",
+      },
+      afternoon: {
+        good_afternoon: "좋은 오후예요",
+        tackling: "좋은 오후예요. 어떤 일을 처리해 볼까요?",
+        next_on_list: "다음 할 일은 무엇인가요?",
+        keep_moving: "계속 이어가 봐요.",
+      },
+      evening: {
+        good_evening: "좋은 저녁이에요",
+        finish_strong: "좋은 저녁이에요. 마무리를 잘해 봐요.",
+      },
+      night: {
+        midnight_oil: "늦게까지 일하고 계신가요?",
+        late_one: "긴 밤이 될까요? 차근차근 생각해 봐요.",
+        still_up: "아직 안 주무셨어요? 준비되시면 말씀하세요.",
+      },
+    },
   },
   "new-workspace": {
     title: "새 워크스페이스",
@@ -239,6 +271,22 @@ const TRANSLATIONS = {
       title: "LLM 온도",
       "desc-end":
         "숫자가 높을수록 창의적입니다. 일부 모델에서는 너무 높게 설정하면 일관성 없는 응답이 나올 수 있습니다.",
+      placeholder: "제공자 기본값",
+    },
+    reasoning_effort: {
+      title: "추론 강도",
+      default: "제공자 기본값",
+      cannot_disable: "이 모델은 추론을 끌 수 없습니다.",
+      levels: {
+        off: "끄기",
+        on: "켜기",
+        minimal: "최소",
+        low: "낮음",
+        medium: "중간",
+        high: "높음",
+        xhigh: "매우 높음",
+        max: "최대",
+      },
     },
   },
   "vector-workspace": {
@@ -317,8 +365,6 @@ const TRANSLATIONS = {
         description:
           "여러 SQL 데이터베이스 제공업체에 연결하여 에이전트가 SQL을 활용하여 질문에 답변할 수 있도록 지원합니다.",
       },
-      default_skill:
-        "기본적으로 이 기능은 활성화되어 있지만, 에이전트에게 이 기능을 사용하지 않도록 설정할 수도 있습니다.",
       filesystem: {
         title: "파일 시스템 접근",
         description:
@@ -700,6 +746,11 @@ const TRANSLATIONS = {
         description:
           '대행자가 채팅을 통해 반복적인 예약 작업을 생성할 수 있도록 합니다(예: "매주 평일 오전 9시에 받은 이메일을 요약하여 제 이메일 주소로 보내기"). 단독 사용자 모드에서만 사용 가능합니다.',
       },
+      generateImage: {
+        title: "이미지 생성",
+        description:
+          "에이전트가 채팅에서 이미지를 생성하거나, 구성된 이미지 생성 제공업체를 사용하여 대화에 첨부된 이미지를 편집할 수 있도록 합니다.",
+      },
     },
     mcp: {
       title: "MCP 서버",
@@ -848,6 +899,11 @@ const TRANSLATIONS = {
         title: "채팅에서 HTML 렌더링",
         description:
           "어시스턴트 응답에 HTML 응답을 표시합니다.\n이는 응답 품질의 훨씬 더 높은 수준을 달성할 수 있지만, 잠재적인 보안 위험으로 이어질 수도 있습니다.",
+      },
+      "disable-auto-scroll": {
+        title: "자동 스크롤 기능 끄기",
+        description:
+          "새 메시지가 도착할 때 자동으로 채팅 내용이 맨 아래로 스크롤되는 기능을 비활성화합니다.",
       },
     },
   },
@@ -1149,6 +1205,8 @@ const TRANSLATIONS = {
       save_embed: "저장 및 임베딩",
       "total-documents_one": "{{count}} 문서",
       "total-documents_other": "{{count}} 관련 문서",
+      "search-results_one": "{{count}} 결과",
+      "search-results_other": "{{count}} 결과",
     },
     upload: {
       "processor-offline": "문서 처리기가 오프라인 상태입니다",
@@ -1184,6 +1242,32 @@ const TRANSLATIONS = {
       watch_explained_block3_link: "파일 관리자",
       watch_explained_block3_end: " 관리자 화면에서 관리할 수 있습니다.",
       accept: "확인했습니다",
+    },
+    gitea: {
+      name: "기테아 저장소",
+      description:
+        "어떤 Gitea 인스턴스에서든 전체 공개 또는 사내 저장소를 단일 클릭으로 가져올 수 있습니다.",
+      URL: "Gitea 저장소 URL",
+      URL_explained:
+        "수집하려는 저장소의 URL (자체 호스팅된 Gitea 인스턴스에 적용)",
+      token: "Gitea 접근 토큰",
+      optional: "선택 사항",
+      token_explained:
+        "개인 저장소 또는 인증이 필요한 인스턴스의 저장소를 수집하려면 액세스 토큰이 필요합니다.",
+      token_explained_start: "(어떤 것) 없이",
+      token_explained_link1: "액세스 토큰",
+      token_explained_end:
+        "Gitea 인스턴스가 공개적으로 노출하는 저장소만 수집할 수 있습니다.",
+      ignores: "파일 무시",
+      git_ignore:
+        "수집 시 특정 파일을 무시하도록 `.gitignore` 형식으로 목록을 작성합니다. 저장하려는 항목마다 엔터를 누르세요.",
+      task_explained:
+        "모든 파일이 완료되면, 문서 선택기에서 워크스페이스에 삽입할 수 있습니다.",
+      branch: "파일을 가져올 서버 또는 브랜치를 선택하세요.",
+      branch_loading: "– 사용 가능한 브랜치 로딩 중 –",
+      branch_explained: "파일을 가져올 서버를 선택하세요.",
+      token_information:
+        "<b>Gitea 접근 토큰</b>을 입력하지 않으면, 이 데이터 연결기는 귀하의 Gitea 인스턴스에서 <b>공개적으로 읽을 수 있는</b> 저장소에서만 파일을 수집할 수 있습니다.",
     },
   },
   chat_window: {
@@ -1324,6 +1408,19 @@ const TRANSLATIONS = {
     stt_transcription_failed: "전사 오류: {{error}}",
     export: "채팅 내용을 다음 형식으로 내보내기:",
     exporting: "수출 중…",
+    preset_img_description: "텍스트 프롬프트에서 이미지를 생성합니다.",
+    generating_response: "응답 생성",
+    response_failed: "메시지에 응답할 수 없었습니다.",
+    response_failed_reason: "이유: {{reason}}",
+    thought_in_progress: "모델은 생각 중입니다…",
+    thoughts: "생각들",
+    leave_generating: {
+      title: "응답 생성 중단?",
+      description:
+        "현재 대화를 종료하면 모델이 응답을 생성하는 것을 중단시키고, 이 상태를 되돌릴 수 없습니다.",
+      cancel: "취소",
+      confirm: "계속",
+    },
   },
   profile_settings: {
     edit_account: "계정 정보 수정",
@@ -1868,6 +1965,24 @@ const TRANSLATIONS = {
       "invalid-model": "유효하지 않은 모델 선택",
       "routed-to": "<route> 정보가 {{model}}에 전달되었습니다.",
       "routed-to-rule": "<route>에서 {{model}}를 통해 </route>로 연결",
+    },
+  },
+  imageGeneration: {
+    title: "이미지 생성 선호도",
+    description:
+      "`/img` 명령어를 사용하여 이미지를 생성하는 데 사용되는 제공 업체를 구성합니다.",
+    provider: "이미지 생성 제공업체",
+    card: {
+      "failed-to-load": "이미지 로딩 실패",
+      "alt-text": "생성된 이미지",
+      edit: "편집",
+      download: "다운로드",
+    },
+    pending: {
+      heading: "이미지 생성 중...",
+      description:
+        "이 작업에는 시간이 걸릴 수 있습니다. 준비되면 바로 여기에서 확인하실 수 있습니다.",
+      aborted: "이미지 생성 작업이 중단되었습니다.",
     },
   },
 };

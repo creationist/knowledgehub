@@ -54,6 +54,7 @@ const TRANSLATIONS = {
     "workspaces-name": "Navn på arbejdsområder",
     selection: "Modelvalg",
     saving: "Gemmer...",
+    saved: "Gemt",
     save: "Gem ændringer",
     previous: "Forrige side",
     next: "Næste side",
@@ -68,6 +69,7 @@ const TRANSLATIONS = {
     stopped: "Stoppet",
     loading: "Indlæsning",
     refresh: "Opfrisk",
+    noResults: "Ingen resultater fundet",
   },
   settings: {
     title: "Instansindstillinger",
@@ -112,6 +114,7 @@ const TRANSLATIONS = {
     },
     "scheduled-jobs": "Planlagte opgaver",
     "model-router": "Model-router",
+    "image-generation": "Billedgenerering",
   },
   login: {
     "multi-user": {
@@ -240,6 +243,22 @@ const TRANSLATIONS = {
       title: "LLM-temperatur",
       "desc-end":
         "Jo højere tallet er, desto mere kreative bliver svarene. For nogle modeller kan for høje værdier føre til usammenhængende svar.",
+      placeholder: "Udbyderens standard",
+    },
+    reasoning_effort: {
+      title: "Ræsonneringsindsats",
+      default: "Udbyderens standard",
+      cannot_disable: "Denne model kan ikke slå ræsonnering fra.",
+      levels: {
+        off: "Fra",
+        on: "Til",
+        minimal: "Minimal",
+        low: "Lav",
+        medium: "Middel",
+        high: "Høj",
+        xhigh: "Ekstra høj",
+        max: "Maks",
+      },
     },
   },
   "vector-workspace": {
@@ -318,8 +337,6 @@ const TRANSLATIONS = {
         description:
           "Giv din agent mulighed for at bruge SQL til at besvare dine spørgsmål ved at oprette forbindelse til forskellige SQL-databaseleverandører.",
       },
-      default_skill:
-        "Som standard er denne funktion aktiveret, men du kan deaktivere den, hvis du ikke ønsker, at den skal være tilgængelig for agenten.",
       filesystem: {
         title: "Adgang til filsystem",
         description:
@@ -712,6 +729,11 @@ const TRANSLATIONS = {
         description:
           'Lad agenten oprette gentagne planlagte opgaver fra chat (f.eks. "hver mandag kl. 9:00, opsummér min indbakke og send mig en e-mail"). Kun tilgængeligt i enkeltbruger-tilstand.',
       },
+      generateImage: {
+        title: "Generer billeder",
+        description:
+          "Lad agenten generere billeder fra chat, eller redigere de vedhæftede billeder i samtalen, ved hjælp af den leverandør, du har konfigureret til billedgenerering.",
+      },
     },
     mcp: {
       title: "MCP-servere",
@@ -1069,6 +1091,8 @@ const TRANSLATIONS = {
       save_embed: "Gem og indlejr",
       "total-documents_one": "{{count}} dokument",
       "total-documents_other": "{{count}} dokumenter",
+      "search-results_one": "{{count}} resultat",
+      "search-results_other": "{{count}} resultater",
     },
     upload: {
       "processor-offline": "Dokumentbehandler utilgængelig",
@@ -1117,6 +1141,32 @@ const TRANSLATIONS = {
         "Dette kan tage noget tid, afhængigt af størrelsen på din opbevaring.",
       vault_warning:
         "For at undgå eventuelle konflikter, skal du sørge for, at din Obsidian-mappe ikke er åben i øjeblikket.",
+    },
+    gitea: {
+      name: "Gitea-repository",
+      description:
+        "Importer en hel offentlig eller privat repository fra enhver Gitea-instans med ét enkelt klik.",
+      URL: "Gitea repository-URL",
+      URL_explained:
+        "URL'en til det repository, du ønsker at hente på din Gitea-instans – selvhostede instanser understøttes.",
+      token: "Gitea-adgangstoken",
+      optional: "valgfrit",
+      token_explained:
+        "Adgangstoken er nødvendigt for at få adgang til private repositories eller repositories på instanser, der kræver autentificering.",
+      token_explained_start: "Uden",
+      token_explained_link1: "Adgangstoken",
+      token_explained_end:
+        "Kun de repositorier, som din Gitea-instans eksponerer offentligt, kan indsamles.",
+      ignores: "Filen ignoreres",
+      git_ignore:
+        "Opret en liste i `.gitignore`-format for at ignorere specifikke filer under indsamlingen. Tryk på Enter efter hver post, du ønsker at gemme.",
+      task_explained:
+        "Når processen er fuldført, vil alle filer være tilgængelige for at blive indsat i arbejdsområder via dokumentvalget.",
+      branch: "Den gren, du ønsker at hente filer fra.",
+      branch_loading: "— Viser tilgængelige grene —",
+      branch_explained: "Den gren, du ønsker at hente filer fra.",
+      token_information:
+        "Uden at udfylde <b>Gitea-adgangstokenet</b>, vil denne dataforbindelse kun være i stand til at hente filer fra repositories, der er <b>offentligt tilgængelige</b> på din Gitea-instans.",
     },
   },
   chat_window: {
@@ -1263,6 +1313,19 @@ const TRANSLATIONS = {
     stt_transcription_failed: "Transkribering mislykkedes: {{error}}",
     export: "Eksportér chat som...",
     exporting: "Eksportér...",
+    preset_img_description: "Generer et billede ud fra en tekstbeskrivelse",
+    generating_response: "Generere svar",
+    response_failed: "Kunne ikke svare på beskeden.",
+    response_failed_reason: "Årsag: {{reason}}",
+    thought_in_progress: "Modellen tænker…",
+    thoughts: "Tanker",
+    leave_generating: {
+      title: "Hvilket svar skal jeg ikke generere?",
+      description:
+        "Du er ved at forlade denne samtale. Dette vil stoppe modellen fra at generere et svar, og det kan ikke gendannes.",
+      cancel: "Annullér",
+      confirm: "Fortsæt",
+    },
   },
   profile_settings: {
     edit_account: "Rediger konto",
@@ -1371,6 +1434,11 @@ const TRANSLATIONS = {
         description:
           "Generer HTML-svar i hjælperes svar.\nDette kan resultere i en meget højere kvalitet af svaret, men kan også føre til potentielle sikkerhedsrisici.",
       },
+      "disable-auto-scroll": {
+        title: "Deaktiver automatisk rulle",
+        description:
+          "Deaktiver automatisk rulle ned til bundlinjen i chatten, når der modtages nye beskeder.",
+      },
     },
   },
   "main-page": {
@@ -1380,6 +1448,35 @@ const TRANSLATIONS = {
       uploadDocument: "Upload en fil",
     },
     greeting: "Hvordan kan jeg hjælpe dig i dag?",
+    greetings: {
+      anytime: {
+        working_on: "Hvad arbejder vi på?",
+        on_your_mind: "Hvad tænker du på?",
+        where_to_start: "Hvor skal vi starte?",
+        ready: "Klar, når du er.",
+        think_it_through: "Lad os tænke det igennem.",
+      },
+      morning: {
+        good_morning: "Godmorgen",
+        first_today: "Godmorgen. Hvad står først på programmet i dag?",
+        fresh_start: "En frisk start. Hvor begynder vi?",
+      },
+      afternoon: {
+        good_afternoon: "God eftermiddag",
+        tackling: "God eftermiddag. Hvad tager vi fat på?",
+        next_on_list: "Hvad er det næste på listen?",
+        keep_moving: "Lad os holde tempoet.",
+      },
+      evening: {
+        good_evening: "God aften",
+        finish_strong: "God aften. Lad os slutte stærkt af.",
+      },
+      night: {
+        midnight_oil: "Arbejder du sent?",
+        late_one: "Lang aften? Lad os tænke det igennem.",
+        still_up: "Stadig vågen? Klar, når du er.",
+      },
+    },
   },
   "keyboard-shortcuts": {
     title: "Tastaturgenveje",
@@ -1914,6 +2011,24 @@ const TRANSLATIONS = {
       "routed-to": "Henvist til <route>{{model}}</route>",
       "routed-to-rule":
         "Rute via <route>{{model}}</route> gennem <rule>{{ruleTitle}}</rule>",
+    },
+  },
+  imageGeneration: {
+    title: "Præference for billedgenerering",
+    description:
+      "Konfigurer leverandøren, der bruges til at generere billeder fra kommandoen `/img`.",
+    provider: "Leverandør af billedgenerering",
+    card: {
+      "failed-to-load": "Billedet kunne ikke indlæses",
+      "alt-text": "Genereret billede",
+      edit: "Rediger",
+      download: "Download",
+    },
+    pending: {
+      heading: "Generering af dit billede...",
+      description:
+        "Det kan tage lidt tid. Det vil dukke op her, så snart det er klar.",
+      aborted: "Genereringen af billedet blev afbrudt.",
     },
   },
 };

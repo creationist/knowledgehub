@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Sidebar from "@/components/SettingsSidebar";
 import { isMobile } from "react-device-detect";
@@ -25,6 +25,7 @@ import TextGenWebUILogo from "@/media/llmprovider/text-generation-webui.png";
 import CohereLogo from "@/media/llmprovider/cohere.png";
 import LiteLLMLogo from "@/media/llmprovider/litellm.png";
 import AWSBedrockLogo from "@/media/llmprovider/bedrock.png";
+import VertexLogo from "@/media/llmprovider/vertex.png";
 import DeepSeekLogo from "@/media/llmprovider/deepseek.png";
 import APIPieLogo from "@/media/llmprovider/apipie.png";
 import XAILogo from "@/media/llmprovider/xai.png";
@@ -35,7 +36,7 @@ import MoonshotAiLogo from "@/media/llmprovider/moonshotai.png";
 import CometApiLogo from "@/media/llmprovider/cometapi.png";
 import FoundryLogo from "@/media/llmprovider/foundry-local.png";
 import GiteeAILogo from "@/media/llmprovider/giteeai.png";
-import DockerModelRunnerLogo from "@/media/llmprovider/docker-model-runner.png";
+import LlmmanLogo from "@/media/llmprovider/llmman.png";
 import PrivateModeLogo from "@/media/llmprovider/privatemode.png";
 import SambaNovaLogo from "@/media/llmprovider/sambanova.png";
 import LemonadeLogo from "@/media/llmprovider/lemonade.png";
@@ -66,6 +67,7 @@ import KoboldCPPOptions from "@/components/LLMSelection/KoboldCPPOptions";
 import TextGenWebUIOptions from "@/components/LLMSelection/TextGenWebUIOptions";
 import LiteLLMOptions from "@/components/LLMSelection/LiteLLMOptions";
 import AWSBedrockLLMOptions from "@/components/LLMSelection/AwsBedrockLLMOptions";
+import VertexLLMOptions from "@/components/LLMSelection/VertexLLMOptions";
 import DeepSeekOptions from "@/components/LLMSelection/DeepSeekOptions";
 import ApiPieLLMOptions from "@/components/LLMSelection/ApiPieOptions";
 import XAILLMOptions from "@/components/LLMSelection/XAiLLMOptions";
@@ -75,7 +77,7 @@ import PPIOLLMOptions from "@/components/LLMSelection/PPIOLLMOptions";
 import MoonshotAiOptions from "@/components/LLMSelection/MoonshotAiOptions";
 import FoundryOptions from "@/components/LLMSelection/FoundryOptions";
 import GiteeAIOptions from "@/components/LLMSelection/GiteeAIOptions/index.jsx";
-import DockerModelRunnerOptions from "@/components/LLMSelection/DockerModelRunnerOptions";
+import LlmmanOptions from "@/components/LLMSelection/LlmmanOptions";
 import PrivateModeOptions from "@/components/LLMSelection/PrivateModeOptions";
 import SambaNovaOptions from "@/components/LLMSelection/SambaNovaOptions";
 import LemonadeOptions from "@/components/LLMSelection/LemonadeOptions";
@@ -83,9 +85,9 @@ import MinimaxOptions from "@/components/LLMSelection/MinimaxOptions";
 import CerebrasLLMOptions from "@/components/LLMSelection/CerebrasLLMOptions";
 
 import LLMItem from "@/components/LLMSelection/LLMItem";
-import { CaretUpDown, MagnifyingGlass, X } from "@phosphor-icons/react";
 import CTAButton from "@/components/lib/CTAButton";
 import OMLXOptions from "@/components/LLMSelection/OMLXOptions";
+import ProviderSearchMenu from "@/components/lib/ProviderSearchMenu";
 
 export const MODEL_ROUTER_PROVIDER = {
   name: "Model Router",
@@ -161,16 +163,12 @@ export const AVAILABLE_LLM_PROVIDERS = [
     requiredConfig: ["LMStudioBasePath"],
   },
   {
-    name: "Docker Model Runner",
-    value: "docker-model-runner",
-    logo: DockerModelRunnerLogo,
-    options: (settings) => <DockerModelRunnerOptions settings={settings} />,
-    description: "Run LLMs using Docker Model Runner.",
-    requiredConfig: [
-      "DockerModelRunnerBasePath",
-      "DockerModelRunnerModelPref",
-      "DockerModelRunnerModelTokenLimit",
-    ],
+    name: "llmman",
+    value: "llmman",
+    logo: LlmmanLogo,
+    options: (settings) => <LlmmanOptions settings={settings} />,
+    description: "Run LLMs locally using llmman.",
+    requiredConfig: ["LlmmanBasePath", "LlmmanModelPref", "LlmmanTokenLimit"],
   },
   {
     name: "Lemonade",
@@ -195,7 +193,7 @@ export const AVAILABLE_LLM_PROVIDERS = [
     logo: LocalAiLogo,
     options: (settings) => <LocalAiOptions settings={settings} />,
     description: "Run LLMs locally on your own machine.",
-    requiredConfig: ["LocalAiApiKey", "LocalAiBasePath", "LocalAiTokenLimit"],
+    requiredConfig: ["LocalAiApiKey", "LocalAiBasePath"],
   },
   {
     name: "Together AI",
@@ -255,11 +253,7 @@ export const AVAILABLE_LLM_PROVIDERS = [
     logo: KoboldCPPLogo,
     options: (settings) => <KoboldCPPOptions settings={settings} />,
     description: "Run local LLMs using koboldcpp.",
-    requiredConfig: [
-      "KoboldCPPModelPref",
-      "KoboldCPPBasePath",
-      "KoboldCPPTokenLimit",
-    ],
+    requiredConfig: ["KoboldCPPBasePath"],
   },
   {
     name: "Oobabooga Web UI",
@@ -312,6 +306,19 @@ export const AVAILABLE_LLM_PROVIDERS = [
       "AwsBedrockLLMApiKey",
       "AwsBedrockLLMRegion",
       "AwsBedrockLLMModel",
+    ],
+  },
+  {
+    name: "Google Vertex AI",
+    value: "vertex",
+    logo: VertexLogo,
+    options: (settings) => <VertexLLMOptions settings={settings} />,
+    description: "Run Gemini models through your Google Cloud project.",
+    requiredConfig: [
+      "VertexAiLLMApiKey",
+      "VertexAiLLMProjectId",
+      "VertexAiLLMRegion",
+      "VertexAiLLMModelPref",
     ],
   },
   {
@@ -442,11 +449,7 @@ export default function GeneralLLMPreference() {
   const [hasChanges, setHasChanges] = useState(false);
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredLLMs, setFilteredLLMs] = useState([]);
   const [selectedLLM, setSelectedLLM] = useState(null);
-  const [searchMenuOpen, setSearchMenuOpen] = useState(false);
-  const searchInputRef = useRef(null);
   const { t } = useTranslation();
 
   const handleSubmit = async (e) => {
@@ -469,19 +472,8 @@ export default function GeneralLLMPreference() {
   };
 
   const updateLLMChoice = (selection) => {
-    setSearchQuery("");
     setSelectedLLM(selection);
-    setSearchMenuOpen(false);
     setHasChanges(true);
-  };
-
-  const handleXButton = () => {
-    if (searchQuery.length > 0) {
-      setSearchQuery("");
-      if (searchInputRef.current) searchInputRef.current.value = "";
-    } else {
-      setSearchMenuOpen(!searchMenuOpen);
-    }
   };
 
   useEffect(() => {
@@ -508,13 +500,6 @@ export default function GeneralLLMPreference() {
       );
     };
   }, []);
-
-  useEffect(() => {
-    const filtered = AVAILABLE_LLM_PROVIDERS.filter((llm) =>
-      llm.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredLLMs(filtered);
-  }, [searchQuery, selectedLLM]);
 
   const selectedLLMObject = AVAILABLE_LLM_PROVIDERS.find(
     (llm) => llm.value === selectedLLM
@@ -562,86 +547,30 @@ export default function GeneralLLMPreference() {
                 {t("llm.provider")}
               </div>
               <div className="relative">
-                {searchMenuOpen && (
-                  <div
-                    className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 backdrop-blur-sm z-10"
-                    onClick={() => setSearchMenuOpen(false)}
-                  />
-                )}
-                {searchMenuOpen ? (
-                  <div className="absolute top-0 left-0 w-full max-w-[640px] max-h-[310px] min-h-[64px] bg-theme-settings-input-bg rounded-lg flex flex-col justify-between cursor-pointer border-2 border-primary-button z-20">
-                    <div className="w-full flex flex-col gap-y-1">
-                      <div className="flex items-center sticky top-0 z-10 border-b border-[#9CA3AF] mx-4 bg-theme-settings-input-bg">
-                        <MagnifyingGlass
-                          size={20}
-                          weight="bold"
-                          className="absolute left-4 z-30 text-theme-text-primary -ml-4 my-2"
-                        />
-                        <input
-                          type="text"
-                          name="llm-search"
-                          autoComplete="off"
-                          placeholder="Search all LLM providers"
-                          className="border-none -ml-4 my-2 bg-transparent z-20 pl-12 h-[38px] w-full px-4 py-1 text-sm outline-none text-theme-text-primary placeholder:text-theme-text-primary placeholder:font-medium"
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          ref={searchInputRef}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") e.preventDefault();
-                          }}
-                        />
-                        <X
-                          size={20}
-                          weight="bold"
-                          className="cursor-pointer text-white hover:text-x-button"
-                          onClick={handleXButton}
-                        />
-                      </div>
-                      <div className="flex-1 pl-4 pr-2 flex flex-col gap-y-1 overflow-y-auto white-scrollbar pb-4 max-h-[245px]">
-                        {filteredLLMs.map((llm) => {
-                          return (
-                            <LLMItem
-                              key={llm.name}
-                              name={llm.name}
-                              value={llm.value}
-                              image={llm.logo}
-                              description={llm.description}
-                              checked={selectedLLM === llm.value}
-                              onClick={() => updateLLMChoice(llm.value)}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    className="w-full max-w-[640px] h-[64px] bg-theme-settings-input-bg rounded-lg flex items-center p-[14px] justify-between cursor-pointer border-2 border-transparent hover:border-primary-button transition-all duration-300"
-                    type="button"
-                    onClick={() => setSearchMenuOpen(true)}
-                  >
-                    <div className="flex gap-x-4 items-center">
-                      <img
-                        src={selectedLLMObject?.logo || AnythingLLMIcon}
-                        alt={`${selectedLLMObject?.name} logo`}
-                        className="w-10 h-10 rounded-md"
-                      />
-                      <div className="flex flex-col text-left">
-                        <div className="text-sm font-semibold text-white">
-                          {selectedLLMObject?.name || "None selected"}
-                        </div>
-                        <div className="mt-1 text-xs text-description">
-                          {selectedLLMObject?.description ||
-                            "You need to select an LLM"}
-                        </div>
-                      </div>
-                    </div>
-                    <CaretUpDown
-                      size={24}
-                      weight="bold"
-                      className="text-white"
+                <ProviderSearchMenu
+                  items={AVAILABLE_LLM_PROVIDERS}
+                  selected={
+                    selectedLLMObject ?? {
+                      name: "None selected",
+                      logo: AnythingLLMIcon,
+                      description: "You need to select an LLM",
+                    }
+                  }
+                  placeholder="Search all LLM providers"
+                  renderItem={(llm, close) => (
+                    <LLMItem
+                      name={llm.name}
+                      value={llm.value}
+                      image={llm.logo}
+                      description={llm.description}
+                      checked={selectedLLM === llm.value}
+                      onClick={() => {
+                        updateLLMChoice(llm.value);
+                        close();
+                      }}
                     />
-                  </button>
-                )}
+                  )}
+                />
               </div>
               <div
                 onChange={() => setHasChanges(true)}

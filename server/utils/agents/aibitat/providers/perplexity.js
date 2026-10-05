@@ -1,7 +1,9 @@
 const OpenAI = require("openai");
 const Provider = require("./ai-provider.js");
+const { temperatureParam } = require("./helpers/tooled.js");
 const InheritMultiple = require("./helpers/classes.js");
 const UnTooled = require("./helpers/untooled.js");
+const { getAnythingLLMUserAgent } = require("../../../../endpoints/utils");
 
 /**
  * The agent provider for the Perplexity provider.
@@ -15,6 +17,9 @@ class PerplexityProvider extends InheritMultiple([Provider, UnTooled]) {
     const client = new OpenAI({
       baseURL: "https://api.perplexity.ai",
       apiKey: process.env.PERPLEXITY_API_KEY ?? null,
+      defaultHeaders: {
+        "X-Pplx-Integration": getAnythingLLMUserAgent(),
+      },
     });
 
     this.providerTag = "perplexity";
@@ -46,6 +51,7 @@ class PerplexityProvider extends InheritMultiple([Provider, UnTooled]) {
     return await this.client.chat.completions
       .create({
         model: this.model,
+        ...temperatureParam(this.temperature),
         messages,
       })
       .then((result) => {
@@ -63,6 +69,7 @@ class PerplexityProvider extends InheritMultiple([Provider, UnTooled]) {
   async #handleFunctionCallStream({ messages = [] }) {
     return await this.client.chat.completions.create({
       model: this.model,
+      ...temperatureParam(this.temperature),
       stream: true,
       messages,
     });

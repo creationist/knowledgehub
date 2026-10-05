@@ -54,6 +54,7 @@ const TRANSLATIONS = {
     "workspaces-name": "Çalışma Alanları Adı",
     selection: "Model Seçimi",
     saving: "Kaydediliyor...",
+    saved: "Kaydedildi",
     save: "Değişiklikleri Kaydet",
     previous: "Önceki Sayfa",
     next: "Sonraki Sayfa",
@@ -68,6 +69,7 @@ const TRANSLATIONS = {
     stopped: "Durdu",
     loading: "Yükleniyor",
     refresh: "Tazelemek",
+    noResults: "Hiçbir sonuç bulunamadı",
   },
   settings: {
     title: "Instance Ayarları",
@@ -111,6 +113,7 @@ const TRANSLATIONS = {
     },
     "scheduled-jobs": "Planlanan İşler",
     "model-router": "Model Router",
+    "image-generation": "Görsel Oluşturma",
   },
   login: {
     "multi-user": {
@@ -237,6 +240,22 @@ const TRANSLATIONS = {
       title: "LLM Sıcaklığı",
       "desc-end":
         "Sayı yükseldikçe yaratıcı yanıtlar artar. Bazı modeller için bu değer çok yüksek ayarlandığında anlamsız yanıtlar ortaya çıkabilir.",
+      placeholder: "Sağlayıcı varsayılanı",
+    },
+    reasoning_effort: {
+      title: "Akıl Yürütme Düzeyi",
+      default: "Sağlayıcı varsayılanı",
+      cannot_disable: "Bu model akıl yürütmeyi kapatamaz.",
+      levels: {
+        off: "Kapalı",
+        on: "Açık",
+        minimal: "Minimum",
+        low: "Düşük",
+        medium: "Orta",
+        high: "Yüksek",
+        xhigh: "Çok yüksek",
+        max: "Maksimum",
+      },
     },
   },
   "vector-workspace": {
@@ -315,8 +334,6 @@ const TRANSLATIONS = {
         description:
           "Temsilcinizin, çeşitli SQL veri tabanı sağlayıcılarına bağlanarak SQL'i kullanarak sorularınızı yanıtlamasına olanak tanıyın.",
       },
-      default_skill:
-        "Varsayılan olarak bu özellik etkinleştirilmiştir, ancak ajanın kullanmasına izin vermek istemiyorsanız, bu özelliği devre dışı bırakabilirsiniz.",
       filesystem: {
         title: "Dosya Sistemi Erişimi",
         description:
@@ -728,6 +745,11 @@ const TRANSLATIONS = {
         description:
           'Temsilcinin, sohbetten otomatik olarak tekrarlayan görevler oluşturmasına izin verin (örneğin, "her hafta içi her gün saat 09:00\'da e-posta kutlumu özetleyip bana gönder"). Sadece tek kullanıcı modunda kullanılabilir.',
       },
+      generateImage: {
+        title: "Görseller oluştur",
+        description:
+          "Ajantın, yapılandırılmış görüntü oluşturma sağlayıcınız aracılığıyla sohbetten görüntüler oluşturmasına veya konuşmaya eklenen görüntüleri düzenlemesine izin verin.",
+      },
     },
     mcp: {
       title: "MCP Sunucuları",
@@ -1086,6 +1108,8 @@ const TRANSLATIONS = {
       save_embed: "Kaydet ve Göm",
       "total-documents_one": "{{count}} belgesi",
       "total-documents_other": "{{count}} belgeleri",
+      "search-results_one": "{{count}}' sonucu",
+      "search-results_other": "{{count}} sonuçları",
     },
     upload: {
       "processor-offline": "Belge İşleyici Kullanılamıyor",
@@ -1133,6 +1157,32 @@ const TRANSLATIONS = {
         "Bu işlem kasanızın boyutuna bağlı olarak biraz zaman alabilir.",
       vault_warning:
         "Herhangi bir çakışmayı önlemek için Obsidian kasanızın şu anda açık olmadığından emin olun.",
+    },
+    gitea: {
+      name: "Gitea Deposu",
+      description:
+        "Herhangi bir Gitea örneğinden, kamu veya özel bir depoyu tek tıklamayla içe aktarın.",
+      URL: "Gitea Depo URL'si",
+      URL_explained:
+        "Gitea örneğinizde toplamak istediğiniz deponun URL'si – kendi barındırdığınız örnekler de desteklenmektedir.",
+      token: "Gitea Erişim Belgesi",
+      optional: "isteğe bağlı",
+      token_explained:
+        "Özel depoları veya kimlik doğrulama gerektiren sunuculardaki depoları toplamak için erişim token'ına ihtiyaç vardır.",
+      token_explained_start: "Herhangi bir...",
+      token_explained_link1: "Erişim Belgesi",
+      token_explained_end:
+        "Sadece Gitea örneğinizin kamuya açık olarak sunduğu depolama alanlarından veri toplanabilir.",
+      ignores: "Dosya, belirtilen öğeyi dikkate almayacak.",
+      git_ignore:
+        "`.gitignore` formatında belirli dosyaların toplanma sırasında göz ardı edilmesini sağlamak için bir liste oluşturun. Kaydetmek istediğiniz her girişte Enter tuşuna basın.",
+      task_explained:
+        "İşlemler tamamlandıktan sonra, tüm dosyalar doküman seçici aracında çalışma alanlarına entegre etmek için kullanılabilir olacaktır.",
+      branch: "Dosyaları almayı istediğiniz şube.",
+      branch_loading: "– Mevcut dallar yükleniliyor –",
+      branch_explained: "Dosyaları almayı istediğiniz şube.",
+      token_information:
+        "<b>Gitea Erişim Belgesi</b> bilgisi sağlanmadığı takdirde, bu veri bağlantısı yalnızca <b>izinli erişilebilir</b> olan Gitea örneğinizdeki depoların dosyalarını toplayabilme yeteneğine sahip olacaktır.",
     },
   },
   chat_window: {
@@ -1276,6 +1326,19 @@ const TRANSLATIONS = {
     stt_transcription_failed: "Transkripsiyon başarısız: {{error}}",
     export: "Çat sohbetini şu şekilde dışa aktar:",
     exporting: "Dışarıya satışı yapma...",
+    preset_img_description: "Bir metin isteminden bir görüntü oluşturun",
+    generating_response: "Yanıt üretme",
+    response_failed: "Mesaja cevap veremedim.",
+    response_failed_reason: "Nedeni: {{reason}}",
+    thought_in_progress: "Model düşünüyor...",
+    thoughts: "Düşünceler",
+    leave_generating: {
+      title: "Yanıt üretmeyi durdurun?",
+      description:
+        "Şu anda bu sohbetten çıkıyorsunuz. Bu, modelin yanıt oluşturmasını durduracak ve bu durumun geri alınamayacağını ifade eder.",
+      cancel: "İptal et",
+      confirm: "Devam et",
+    },
   },
   profile_settings: {
     edit_account: "Hesabı Düzenle",
@@ -1384,6 +1447,11 @@ const TRANSLATIONS = {
         description:
           "Asistan yanıtlarında HTML yanıtlarını görüntüleyin.\nBu, çok daha yüksek kaliteli yanıt sağlayabilir, ancak potansiyel güvenlik risklerine de yol açabilir.",
       },
+      "disable-auto-scroll": {
+        title: "Otomatik kaydırma özelliğini devre dışı bırak",
+        description:
+          "Yeni mesajlar aldığınızda sohbetin otomatik olarak en alttaki bölüme kaydırmasını devre dışı bırakın.",
+      },
     },
   },
   "main-page": {
@@ -1393,6 +1461,35 @@ const TRANSLATIONS = {
       uploadDocument: "Bir belge yükleyin",
     },
     greeting: "Bugün size nasıl yardımcı olabilirim?",
+    greetings: {
+      anytime: {
+        working_on: "Ne üzerinde çalışıyoruz?",
+        on_your_mind: "Aklınızda ne var?",
+        where_to_start: "Nereden başlayalım?",
+        ready: "Hazır olduğunuzda buradayım.",
+        think_it_through: "Gelin, birlikte düşünelim.",
+      },
+      morning: {
+        good_morning: "Günaydın",
+        first_today: "Günaydın. Bugün ilk iş ne?",
+        fresh_start: "Yeni bir başlangıç. Nereden başlayalım?",
+      },
+      afternoon: {
+        good_afternoon: "İyi günler",
+        tackling: "İyi günler. Neyi halledelim?",
+        next_on_list: "Listede sırada ne var?",
+        keep_moving: "Devam edelim.",
+      },
+      evening: {
+        good_evening: "İyi akşamlar",
+        finish_strong: "İyi akşamlar. Günü güçlü bitirelim.",
+      },
+      night: {
+        midnight_oil: "Geç saatlere kadar mı çalışıyorsunuz?",
+        late_one: "Uzun bir gece mi? Gelin, birlikte düşünelim.",
+        still_up: "Hâlâ uyanık mısınız? Hazır olduğunuzda buradayım.",
+      },
+    },
   },
   "keyboard-shortcuts": {
     title: "Klavye Kısayolları",
@@ -1813,7 +1910,7 @@ const TRANSLATIONS = {
       "calculated-single-condition":
         'Eğer <prop> {{property}} </prop> {{comparator}} <val> "{{value}}" </val> ise, rotayı <route> {{route}} </route> olarak belirle.',
       "calculated-multi-condition":
-        "Eğer {{quantifier}} (TAG_0) {{conditions}} (TAG_1) ise, rotayı <route> (PLACEHOLDER_2) __PLACEHOLDER_3__ (TAG_3) olarak belirle.",
+        "Eğer {{quantifier}} <cond>{{conditions}}</cond> ise, rotayı <route>{{route}}</route> olarak belirle.",
       "comparator-contains": "içerir",
       "comparator-matches": "Maçlar",
       "comparator-between": "arasında",
@@ -1925,6 +2022,24 @@ const TRANSLATIONS = {
       "routed-to": "Yönlendirildi: <route> {{model}} </route>",
       "routed-to-rule":
         "Yönlendirildi: <route> aracılığıyla {{model}} üzerinden </route>, <rule> aracılığıyla {{ruleTitle}} üzerinden </rule>",
+    },
+  },
+  imageGeneration: {
+    title: "Görüntü Oluşturma Tercihi",
+    description:
+      "`/img` komutunu kullanarak görüntüler oluşturmak için kullanılan sağlayıcıyı yapılandırın.",
+    provider: "Görüntü Üretim Sağlayıcısı",
+    card: {
+      "failed-to-load": "Görsel yüklenemedi",
+      "alt-text": "Oluşturulan görüntü",
+      edit: "Düzenle",
+      download: "İndir",
+    },
+    pending: {
+      heading: "Görüntünüzü oluşturuluyor…",
+      description:
+        "Bu işlem biraz zaman alabilir. Hazır olduğunda burada görüntülenecektir.",
+      aborted: "Görüntü oluşturma işlemi başarısız oldu.",
     },
   },
 };

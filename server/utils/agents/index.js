@@ -16,7 +16,14 @@ const {
 const ImportedPlugin = require("./imported");
 const { AgentFlows } = require("../agentFlows");
 const MCPCompatibilityLayer = require("../MCP");
-const { getAndClearInvocationAttachments } = require("../chats/agents");
+const {
+  getAndClearInvocationAttachments,
+  getAndClearInvocationReasoningEffort,
+} = require("../chats/agents");
+const {
+  resolveReasoningEffort,
+  usesModelRouter,
+} = require("../helpers/reasoningEffort");
 const { DocumentManager } = require("../DocumentManager");
 
 class AgentHandler {
@@ -95,19 +102,23 @@ class AgentHandler {
         )
       ).reverse();
 
+      const { chatHistoryAttachments } = require("../files");
       const agentHistory = [];
       rawHistory.forEach((chatLog) => {
+        const response = safeJsonParse(chatLog.response, {});
+        const attachments = chatHistoryAttachments(response);
         agentHistory.push(
           {
             from: USER_AGENT.name,
             to: WORKSPACE_AGENT.name,
             content: chatLog.prompt,
             state: "success",
+            ...(attachments.length > 0 ? { attachments } : {}),
           },
           {
             from: WORKSPACE_AGENT.name,
             to: USER_AGENT.name,
-            content: safeJsonParse(chatLog.response)?.text || "",
+            content: response?.text || "",
             state: "success",
           }
         );
@@ -254,11 +265,9 @@ class AgentHandler {
         if (!process.env.COHERE_API_KEY)
           throw new Error("Cohere API key must be provided to use agents.");
         break;
-      case "docker-model-runner":
-        if (!process.env.DOCKER_MODEL_RUNNER_BASE_PATH)
-          throw new Error(
-            "Docker Model Runner base path must be provided to use agents."
-          );
+      case "llmman":
+        if (!process.env.LLMMAN_BASE_PATH)
+          throw new Error("llmman base path must be provided to use agents.");
         break;
       case "privatemode":
         if (!process.env.PRIVATEMODE_LLM_BASE_PATH)
@@ -285,6 +294,15 @@ class AgentHandler {
       case "cerebras":
         if (!process.env.CEREBRAS_API_KEY)
           throw new Error("Cerebras API key must be provided to use agents.");
+        break;
+      case "vertex":
+        if (
+          !process.env.VERTEX_AI_LLM_API_KEY ||
+          !process.env.VERTEX_AI_LLM_PROJECT_ID
+        )
+          throw new Error(
+            "Vertex AI API key and project ID must be provided to use agents."
+          );
         break;
       default:
         throw new Error(
@@ -366,8 +384,8 @@ class AgentHandler {
         return process.env.GITEE_AI_MODEL_PREF ?? null;
       case "cohere":
         return process.env.COHERE_MODEL_PREF ?? "command-r-08-2024";
-      case "docker-model-runner":
-        return process.env.DOCKER_MODEL_RUNNER_LLM_MODEL_PREF ?? null;
+      case "llmman":
+        return process.env.LLMMAN_MODEL_PREF ?? null;
       case "privatemode":
         return process.env.PRIVATEMODE_LLM_MODEL_PREF ?? null;
       case "sambanova":
@@ -380,6 +398,8 @@ class AgentHandler {
         return process.env.MINIMAX_MODEL_PREF ?? "MiniMax-M2.7";
       case "cerebras":
         return process.env.CEREBRAS_MODEL_PREF ?? "gpt-oss-120b";
+      case "vertex":
+        return process.env.VERTEX_AI_LLM_MODEL_PREF ?? "gemini-2.5-flash";
       default:
         return null;
     }
@@ -524,6 +544,10 @@ class AgentHandler {
     this.provider = router.resolvedRoute.provider;
     this.model = router.resolvedRoute.model;
     this.routingMetadata = router.routingMetadata;
+    // Held so the model-router-cooldown plugin can restart the cooldown when
+    // the agent stops responding. Routing re-resolves per turn, so this always
+    // points at the router for the current route.
+    this._modelRouter = router;
   }
 
   async #validInvocation() {
@@ -756,6 +780,9 @@ class AgentHandler {
 
     // Retrieve cached attachments (images, etc.) from the HTTP request
     this.attachments = getAndClearInvocationAttachments(this.#invocationUUID);
+    this.sessionReasoningEffort = getAndClearInvocationReasoningEffort(
+      this.#invocationUUID
+    );
 
     return this;
   }
@@ -827,6 +854,37 @@ class AgentHandler {
       });
   }
 
+  /**
+   * Reasoning effort for the current provider + model, validated against the
+   * model's live capabilities. Re-run whenever the route changes, since an
+   * effort valid for one model can be rejected by another.
+   * @returns {Promise<string|null>}
+   */
+  async #reasoningEffortForRoute() {
+    if (usesModelRouter(this.invocation.workspace)) return null;
+    const { getLLMProvider } = require("../helpers");
+    return await resolveReasoningEffort(
+      () => getLLMProvider({ provider: this.provider, model: this.model }),
+      this.sessionReasoningEffort
+    );
+  }
+
+  /**
+   * Switches the session's reasoning effort mid-session. The new effort is
+   * validated against the current route's model and used from the next turn.
+   * @param {string|null} sessionEffort - null uses the provider default
+   */
+  async #updateReasoningEffort(sessionEffort = null) {
+    const effort = typeof sessionEffort === "string" ? sessionEffort : null;
+    if (effort === this.sessionReasoningEffort) return;
+    this.sessionReasoningEffort = effort;
+    this.aibitat.defaultProvider.reasoningEffort =
+      await this.#reasoningEffortForRoute();
+    this.log(
+      `Reasoning effort for ${this.provider}:${this.model} is now ${this.aibitat.defaultProvider.reasoningEffort ?? "provider default"}.`
+    );
+  }
+
   async createAIbitat(
     args = {
       socket: null,
@@ -836,6 +894,8 @@ class AgentHandler {
     this.aibitat = new AIbitat({
       provider: this.provider ?? "openai",
       model: this.model ?? "gpt-4.1-nano",
+      temperature: this.invocation.workspace?.openAiTemp,
+      reasoningEffort: await this.#reasoningEffortForRoute(),
       chats: await this.#chatHistory(20),
       handlerProps: {
         invocation: this.invocation,
@@ -852,6 +912,11 @@ class AgentHandler {
     // running agent mid-session.
     this.aibitat.toggleAgentTool = (payload) => this.#toggleAgentTool(payload);
 
+    // Register callback so the websocket plugin can apply the reasoning effort
+    // the chat session sends with each message to the agent's next turn.
+    this.aibitat.updateReasoningEffort = (effort) =>
+      this.#updateReasoningEffort(effort);
+
     // If the workspace uses the model router, attach a resolver so routing
     // is re-evaluated on every agent turn instead of only at initialization.
     // Skip the first invocation since routing was already resolved during init()
@@ -861,13 +926,21 @@ class AgentHandler {
       this.aibitat.resolveRoute = async (prompt) => {
         if (isFirstCall) {
           isFirstCall = false;
-          return { provider: this.provider, model: this.model };
+          return {
+            provider: this.provider,
+            model: this.model,
+            reasoningEffort: this.aibitat.defaultProvider.reasoningEffort,
+          };
         }
         try {
           await this.#resolveRouterProvider(prompt);
           this.aibitat.handlerProps.routingMetadata =
             this.routingMetadata || null;
-          return { provider: this.provider, model: this.model };
+          return {
+            provider: this.provider,
+            model: this.model,
+            reasoningEffort: await this.#reasoningEffortForRoute(),
+          };
         } catch (e) {
           this.log(
             "Router re-resolution failed, keeping current route",
@@ -876,6 +949,15 @@ class AgentHandler {
           return null;
         }
       };
+
+      this.log(
+        `Attached ${AgentPlugins.modelRouterCooldown.name} plugin to Agent cluster`
+      );
+      this.aibitat.use(
+        AgentPlugins.modelRouterCooldown.plugin(() =>
+          this._modelRouter?.onInferenceComplete()
+        )
+      );
     }
 
     // Attach standard websocket plugin for frontend communication.

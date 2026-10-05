@@ -53,6 +53,7 @@ const TRANSLATIONS = {
     "workspaces-name": "Tööruumide nimi",
     selection: "Mudeli valik",
     saving: "Salvestan…",
+    saved: "Salvestatud",
     save: "Salvesta muudatused",
     previous: "Eelmine leht",
     next: "Järgmine leht",
@@ -67,6 +68,7 @@ const TRANSLATIONS = {
     stopped: "Peatas",
     loading: "Laadimine",
     refresh: "Värskendada",
+    noResults: "Tulemusi ei leitud",
   },
   settings: {
     title: "Instantsi seaded",
@@ -110,6 +112,7 @@ const TRANSLATIONS = {
     },
     "scheduled-jobs": "Planeeritud tööd",
     "model-router": "Mudel: reiting",
+    "image-generation": "Pildi genereerimine",
   },
   login: {
     "multi-user": {
@@ -136,6 +139,35 @@ const TRANSLATIONS = {
       uploadDocument: "Lae fail üles",
     },
     greeting: "Kuidas saan teid täna aidata?",
+    greetings: {
+      anytime: {
+        working_on: "Millega tegeleme?",
+        on_your_mind: "Mis teil mõttes on?",
+        where_to_start: "Kust alustame?",
+        ready: "Valmis, kui teie olete.",
+        think_it_through: "Mõtleme selle läbi.",
+      },
+      morning: {
+        good_morning: "Tere hommikust",
+        first_today: "Tere hommikust. Millega täna alustame?",
+        fresh_start: "Uus algus. Kust alustame?",
+      },
+      afternoon: {
+        good_afternoon: "Tere päevast",
+        tackling: "Tere päevast. Mille kallale asume?",
+        next_on_list: "Mis on nimekirjas järgmine?",
+        keep_moving: "Liigume edasi.",
+      },
+      evening: {
+        good_evening: "Tere õhtust",
+        finish_strong: "Tere õhtust. Lõpetame hästi.",
+      },
+      night: {
+        midnight_oil: "Töötate hilisööni?",
+        late_one: "Pikk õhtu? Mõtleme selle läbi.",
+        still_up: "Ikka veel üleval? Valmis, kui teie olete.",
+      },
+    },
   },
   "new-workspace": {
     title: "Uus tööruum",
@@ -197,7 +229,7 @@ const TRANSLATIONS = {
       query: {
         title: "Päring",
         description:
-          'teenib vastuseid <b> ainult__, kui dokumendi kontekst on leitav.</b> Vajate kasutama käitu "@agent", et kasutada tööriime.',
+          'teenib vastuseid <b> ainult, kui dokumendi kontekst on leitav.</b> Vajate kasutama käitu "@agent", et kasutada tööriime.',
       },
       automatic: {
         description:
@@ -241,6 +273,22 @@ const TRANSLATIONS = {
       title: "LLM-i temperatuur",
       "desc-end":
         "Kõrgem väärtus = loovam, ent liiga kõrge võib tekitada ebaühtlasi vastuseid.",
+      placeholder: "Teenusepakkuja vaikeväärtus",
+    },
+    reasoning_effort: {
+      title: "Arutlemise pingutus",
+      default: "Teenusepakkuja vaikeväärtus",
+      cannot_disable: "See mudel ei saa arutlemist välja lülitada.",
+      levels: {
+        off: "Väljas",
+        on: "Sees",
+        minimal: "Minimaalne",
+        low: "Madal",
+        medium: "Keskmine",
+        high: "Kõrge",
+        xhigh: "Väga kõrge",
+        max: "Maksimaalne",
+      },
     },
   },
   "vector-workspace": {
@@ -315,8 +363,6 @@ const TRANSLATIONS = {
         description:
           "Tagage, et teie esindaja saaks kasutada SQL-i, et vastata teie küsimustele, ühendades erinevate SQL andmebaasiteenustega.",
       },
-      default_skill:
-        "Vaikimisi on see funktsioon lubatud, kuid saate seda välja lülitada, kui ei soovi, et see oleks saadaval kaagentile.",
       filesystem: {
         title: "Failisüsteemi juurdepääs",
         description:
@@ -710,6 +756,11 @@ const TRANSLATIONS = {
         description:
           'Lase esindajal luua korduvad, planeeritud ülesanded vestluse kaudu (nt " iga tööpäeva kell 9 kokkuvõta minu postkasti ja saada mulle e-posti"). Saadav ainult ühe kasutaja režiimis.',
       },
+      generateImage: {
+        title: "Loo pildid",
+        description:
+          "Lase esindajal luua pilte vestluse põhjal või muuta dialoogi külge lisatud pilte, kasutades teie konfigureeritud piltide genereerimisteenust.",
+      },
     },
     mcp: {
       title: "MCP-serverid",
@@ -855,6 +906,11 @@ const TRANSLATIONS = {
         title: "Renderi HTML-koodi veebisaidil",
         description:
           "HTML-vastuste kuvamine abivasside vastustes.\nSee võib viia suurema vastuste kvaliteedi, kuid võib ka põhjustada potentsiaalseid turvaohusid.",
+      },
+      "disable-auto-scroll": {
+        title: "Lülita automaatne rullimine välja",
+        description:
+          "Lülitage automaatne rullimine alla lootes välja, kui saabuvad uued sõnumid.",
       },
     },
   },
@@ -1150,6 +1206,8 @@ const TRANSLATIONS = {
       save_embed: "Salvesta ja põimi",
       "total-documents_one": "{{count}} dokument",
       "total-documents_other": "{{count}} dokumendid",
+      "search-results_one": "{{count}} tulemus",
+      "search-results_other": "{{count}} tulemused",
     },
     upload: {
       "processor-offline": "Dokumenditöötleja pole saadaval",
@@ -1185,6 +1243,32 @@ const TRANSLATIONS = {
       watch_explained_block3_link: "Failihalduri",
       watch_explained_block3_end: " vaates.",
       accept: "Selge",
+    },
+    gitea: {
+      name: "Git repo",
+      description:
+        "Impordige kogu avalik või privaatne Git-repositoor ühe klikiga mis tahes Gitea instantsist.",
+      URL: "Gitea repositooriumi URL",
+      URL_explained:
+        "Repo URL, mida soovite koguda oma Gitea instantsis – toetatakse ka isehoosutatud instansse.",
+      token: "Gitea juurdepääsu token",
+      optional: "valikuline",
+      token_explained:
+        "Avalik juurdepääs nõutakse, et saaksite koguda privaatseid veebikeskusi või veebikeskuseid, mis vajavad autentimist.",
+      token_explained_start: "Ilgata",
+      token_explained_link1: "Ligipääsitoimetunnus",
+      token_explained_end:
+        "Aga ainult need veebipõhised repositorid, mida teie Gitea instants avaldab, saab koguda.",
+      ignores: "Fail ignoreeritakse",
+      git_ignore:
+        "Loole .gitignore formaadis, et eitada konkreetseid failide kogumisel. Vajutage enter pärast iga faili, mida soovite säilitada.",
+      task_explained:
+        "Kui kõik failid on valmis, siis need on saadaval dokumendivaliku funktsiooni kaudu töövälade integreerimiseks.",
+      branch: "See osa, kust soovite failide hankida.",
+      branch_loading: "– saadaval olevate versioonide laadimine –",
+      branch_explained: "See osa, kust soovite failide hankida.",
+      token_information:
+        "Kui <b>Gitea andmeühenduse avatuse võti</b> pole täidetud, siis see andmekoguri võib saada failid ainult neist repositoriumidest, mis on <b>avalikult loetavad</b> teie Gitea instantsis.",
     },
   },
   chat_window: {
@@ -1323,6 +1407,19 @@ const TRANSLATIONS = {
     stt_transcription_failed: "Transkribeerimine ebaõnnestunud: {{error}}",
     export: "Экспорти руй чат kui...",
     exporting: "Экспорт",
+    preset_img_description: "Loo pilt tekstist antud juhiste põhjal",
+    generating_response: "Vastus genereerimine",
+    response_failed: "Ei olnud võimalik vastata teatele.",
+    response_failed_reason: "põhjus: {{reason}}",
+    thought_in_progress: "Mudel mõtleb…",
+    thoughts: "Mõtisklused",
+    leave_generating: {
+      title: "Kas soovite peatada vastuste genereerimise?",
+      description:
+        "Te olete valmis loobuma sellest vestlusest, see peatab mudeli vastuste genereerimise ja seda ei saa enam taastada.",
+      cancel: "Katkuda",
+      confirm: "Jätka",
+    },
   },
   profile_settings: {
     edit_account: "Muuda kontot",
@@ -1871,6 +1968,24 @@ const TRANSLATIONS = {
       "routed-to": "Saadetakse <route>{{model}}</route>",
       "routed-to-rule":
         "Saadetakse <route>{{model}}</route> kaudu <rule>{{ruleTitle}}</rule>",
+    },
+  },
+  imageGeneration: {
+    title: "Pildi genereerimise eelistused",
+    description:
+      "Konfigureerige pakkuja, mida kasutatakse piltide genereerimiseks käsku `/img` kaudu.",
+    provider: "Pildide genereerimise teenuse pakkuja",
+    card: {
+      "failed-to-load": "Pildi laadimisel tekkis probleem.",
+      "alt-text": "Sünnitatud pilt",
+      edit: "Redigeerimine",
+      download: "Lae alla",
+    },
+    pending: {
+      heading: "Sinu pildi genereerimine…",
+      description:
+        "See võib võtta natuke aega. See ilmub siia, niipea kui see on valmis.",
+      aborted: "Pildi genereerimine katkestati.",
     },
   },
 };

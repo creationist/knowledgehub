@@ -11,6 +11,7 @@ const DEFAULT_SKILLS = [
   AgentPlugins.memory.name,
   AgentPlugins.docSummarizer.name,
   AgentPlugins.webScraping.name,
+  AgentPlugins.webBrowsing.name,
 ];
 
 // Skills that must never be injected when the instance is running in multi-user mode.
@@ -41,6 +42,11 @@ const SKILL_FILTER_CONFIG = {
       require("./aibitat/plugins/outlook/lib").OutlookBridge.isToolAvailable(),
     disabledSettingKey: "disabled_outlook_skills",
   },
+  "google-calendar-agent": {
+    getAvailability: async () =>
+      require("./aibitat/plugins/google-calendar/lib").GoogleCalendarBridge.isToolAvailable(),
+    disabledSettingKey: "disabled_google_calendar_skills",
+  },
 };
 
 const USER_AGENT = {
@@ -57,21 +63,20 @@ const WORKSPACE_AGENT = {
   name: "@agent",
   /**
    * Get the definition for the workspace agent with its role (prompt) and functions in Aibitat format
-   * @param {string} provider
+   * @param {string} _provider - Unused, kept for call-site compatibility
    * @param {import("@prisma/client").workspaces | null} workspace
    * @param {import("@prisma/client").users | null} user
    * @param {string} [prompt] - Current user message for memory reranking
    * @returns {Promise<{ role: string, functions: object[] }>}
    */
   getDefinition: async (
-    provider = null,
+    _provider = null,
     workspace = null,
     user = null,
     prompt = ""
   ) => {
     let [role, clarifyingQuestionsSkills] = await Promise.all([
       Provider.systemPrompt({
-        provider,
         workspace,
         user,
         prompt,

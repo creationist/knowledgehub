@@ -65,6 +65,8 @@ function utilEndpoints(app) {
           workspaceId: workspace.id,
           user_id: user?.id || null,
           thread_id: thread?.id || null,
+          api_session_id: null, // Do not include API session chats.
+          include: true, // only export visible chats
         });
         if (chats.length === 0) return response.sendStatus(400).end();
 
@@ -81,13 +83,11 @@ function utilEndpoints(app) {
     }
   );
 
-  const {
-    dockerModelRunnerUtilsEndpoints,
-  } = require("./utils/dockerModelRunnerUtils");
-  dockerModelRunnerUtilsEndpoints(app);
-
   const { lemonadeUtilsEndpoints } = require("./utils/lemonadeUtilsEndpoints");
   lemonadeUtilsEndpoints(app);
+
+  const { foundryUtilsEndpoints } = require("./utils/foundryUtilsEndpoints");
+  foundryUtilsEndpoints(app);
 }
 
 function getGitVersion() {
@@ -222,8 +222,8 @@ function getModelTag() {
     case "cohere":
       model = process.env.COHERE_MODEL_PREF;
       break;
-    case "docker-model-runner":
-      model = process.env.DOCKER_MODEL_RUNNER_LLM_MODEL_PREF;
+    case "llmman":
+      model = process.env.LLMMAN_MODEL_PREF;
       break;
     case "privatemode":
       model = process.env.PRIVATEMODE_LLM_MODEL_PREF;
@@ -242,6 +242,9 @@ function getModelTag() {
       break;
     case "omlx":
       model = process.env.OMLX_LLM_MODEL_PREF;
+      break;
+    case "vertex":
+      model = process.env.VERTEX_AI_LLM_MODEL_PREF;
       break;
     default:
       model = "--";
